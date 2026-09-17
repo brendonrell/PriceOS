@@ -18,6 +18,7 @@
  */
 
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { isVaulted } from '../pins/vaultStore';
 
 export interface SheetItem {
     slug: string;
@@ -65,7 +66,12 @@ export function MarketSheetProvider({ children }: { children: ReactNode }) {
     const [state, setState] = useState<MarketSheetState>(null);
 
     const openListSheet = useCallback((items: SheetItem[]) => {
-        if (items.length > 0) setState({ sheet: 'list', items });
+        /* Safety net for every List-trigger surface, not just the artwork
+           page's own greyed-out button (bulk selects, float bars, card
+           previews) — a vaulted piece can never reach the sheet, no
+           matter which door it came through (Brendon, 2026-09-17). */
+        const sellable = items.filter((it) => !isVaulted(it.slug, it.id));
+        if (sellable.length > 0) setState({ sheet: 'list', items: sellable });
     }, []);
     const openOfferSheet = useCallback((items: SheetItem[]) => {
         if (items.length > 0) setState({ sheet: 'offer-choice', items });
