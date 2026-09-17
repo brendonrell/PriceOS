@@ -32,8 +32,26 @@ import { ACHIEVEMENTS_ICON } from '../lib/achievements/icon';
 import { useSpriteFace } from '../lib/hooks/useSpriteFace';
 import SpriteFace from './SpriteFace';
 import { getTodos, subscribeTodos, toggleTodo, type TodoItem } from '../lib/todos/todoStore';
+import { PriceDayWidget, TokenWidget } from './stone/StoneDeck';
 
 const VS15 = '︎';
+
+/* ── SYNTHETIC CARDS (Brendon, 2026-09-16) — the home marquee's non-nav
+   pills open THIS SAME modal, same overlay, same card, instead of growing a
+   second popup. `synthetic` payloads never touch the pings store; when one
+   names a `widget`, the card drops in the Command Stone's OWN widget
+   component verbatim (copy/pasted import, not re-implemented) — the exact
+   live card the Stone would show, sitting inside the ping-shaped popup. */
+export interface SyntheticPingPayload {
+    synthetic: true;
+    tag?: string;
+    glyph?: string;
+    title?: string;
+    meta?: string;
+    /** A widget straight off the Stone's own deck (StoneDeck.tsx) — no
+        navigation, no re-drawing: the real component, rendered here. */
+    widget?: { kind: 'token'; symbol: string } | { kind: 'priceday' };
+}
 
 /* The card's top row when a PERSON is involved — their PriceSprite (Brendon,
    2026-08-02), at the ID-row's designated size. The kind title stands in while
@@ -73,11 +91,21 @@ export default function PingModal() {
     const { state } = usePings();
     const { setAccordion } = usePdNotifs();
     const { openMenu } = useDropdown();
-    const { handle: myHandle } = useAuth();
+    const { handle: myHandle, siweAddress } = useAuth();
     const { isOpen, isTopStacked } = useModalLayer('ping');
 
     const entry = [...stack].reverse().find((m) => m.name === 'ping');
-    const pingId = typeof entry?.payload === 'string' ? entry.payload : '';
+    const rawPayload = typeof entry?.payload === 'string' ? entry.payload : '';
+    /* A synthetic card never collides with a real ping id — real ids are
+       never valid JSON, so a successful parse with the marker is proof. */
+    const synthetic = useMemo<SyntheticPingPayload | null>(() => {
+        if (!rawPayload) return null;
+        try {
+            const obj = JSON.parse(rawPayload);
+            return obj && obj.synthetic === true ? (obj as SyntheticPingPayload) : null;
+        } catch { return null; }
+    }, [rawPayload]);
+    const pingId = synthetic ? '' : rawPayload;
     const item = useMemo(() => state.items.find((p) => p.id === pingId) ?? null, [state.items, pingId]);
 
     const onBackdropClick = useCallback(
@@ -167,13 +195,39 @@ export default function PingModal() {
         >
             <div className="ms-confirm-card is-centered ping-card" onClick={(e) => e.stopPropagation()}>
                 <div className="ping-card-kind">
-                    {item?.actor_name ? (
-                        <ActorTopRow handle={item.actor_name} title={r ? titleOf(r.kind, reminder) : 'PING'} />
-                    ) : (
-                        r ? titleOf(r.kind, reminder) : 'PING'
-                    )}
+                    {synthetic ? (synthetic.tag ?? 'PD')
+                        : item?.actor_name ? (
+                            <ActorTopRow handle={item.actor_name} title={r ? titleOf(r.kind, reminder) : 'PING'} />
+                        ) : (
+                            r ? titleOf(r.kind, reminder) : 'PING'
+                        )}
                 </div>
-                {r ? (
+                {synthetic ? (
+                    <>
+                        {(synthetic.glyph || synthetic.title || synthetic.meta) && (
+                            <div className="ms-confirm-question ping-card-line">
+                                {synthetic.glyph && <span className="ping-card-ic">{synthetic.glyph}</span>}
+                                <span>
+                                    {synthetic.title}
+                                    {synthetic.meta ? ` — ${synthetic.meta}` : ''}
+                                </span>
+                            </div>
+                        )}
+                        {/* THE WIDGET, VERBATIM — the exact component the Command
+                            Stone renders for this same summon, dropped straight
+                            into the popup (no re-implementation, no navigating
+                            away to see it). */}
+                        {synthetic.widget?.kind === 'token' && (
+                            <TokenWidget symbol={synthetic.widget.symbol} address={siweAddress ?? ''} />
+                        )}
+                        {synthetic.widget?.kind === 'priceday' && <PriceDayWidget />}
+                        <div className="ms-confirm-btns ping-card-btns">
+                            <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={close}>
+                                Close
+                            </button>
+                        </div>
+                    </>
+                ) : r ? (
                     <>
                         <div className="ms-confirm-question ping-card-line">
                             <span className={`ping-card-ic ping-ic ping-ic--${r.kind}`}>{r.icon}</span>
