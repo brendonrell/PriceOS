@@ -39,17 +39,27 @@ const PAGE_CACHE_TTL_S = 300;
 // entries under the previous BOOT_ID just age out via the TTL — never read
 // again, never served, harmless.
 //
-// Lazily initialized (Brendon, 2026-09-05, same-day follow-up): Cloudflare
-// Workers forbids generating random values at global/module scope — only
-// inside a request handler. `crypto.randomUUID()` called directly at module
-// init passed `next build` and `next-on-pages` build cleanly, but failed
-// wrangler's deploy-time validation every single time (10021: "Disallowed
-// operation called within global scope"), which meant EVERY deploy since
-// this fix landed silently kept the previous build live — no error visible
-// short of reading the deploy log's tail. `getBootId()` defers the call
-// into the fetch handler; still exactly one value per isolate lifetime.
+// (2026-09-18 fix) — the lazy-random approach above (2026-09-05/06) was
+// wrong at the root: crypto.randomUUID() is scoped to ONE WORKER ISOLATE,
+// not one DEPLOY. Cloudflare recycles isolates constantly, especially at
+// quiet-site traffic — every fresh isolate mints its own random boot id and
+// stamps it into the cache key. Instead of one shared cache entry every
+// isolate could hit, the cache fragmented into dozens of differently-keyed
+// copies that almost never got reused: near-permanent cache MISS → full
+// cold SSR render (the 2.6-3.9s TTFB the cache exists to avoid) on most
+// requests. That's the "always a long white screen now" regression.
+//
+// Fix: key on Cloudflare's version_metadata binding instead — env.CF_VERSION
+// .id is the SAME value across every isolate of one deploy, and only
+// changes when a new deploy ships (wrangler.jsonc adds the binding). That
+// keeps the original protection (a deploy's new isolates never read stale
+// HTML referencing a prior build's now-404'd hashed asset filenames) while
+// restoring a shared cache across all isolates within a deploy. Falls back
+// to the old per-isolate random id only if the binding is ever missing, so
+// this never hard-fails — it just degrades to the pre-fix behavior.
 let _bootId: string | null = null;
-function getBootId(): string {
+function getBootId(env: { CF_VERSION?: { id?: string } }): string {
+  if (env.CF_VERSION?.id) return env.CF_VERSION.id;
   if (_bootId === null) _bootId = crypto.randomUUID();
   return _bootId;
 }
@@ -74,7 +84,7 @@ function isCacheablePageRequest(request: Request): boolean {
 
 const cachedFetch = async (
   request: Request,
-  env: unknown,
+  env: { CF_VERSION?: { id?: string } },
   ctx: { waitUntil(p: Promise<unknown>): void }
 ): Promise<Response> => {
   const upstream = handler.fetch as (
@@ -86,7 +96,7 @@ const cachedFetch = async (
 
   const cache = (caches as unknown as { default: Cache }).default;
   const keyUrl = new URL(request.url);
-  keyUrl.searchParams.set("__boot", getBootId());
+  keyUrl.searchParams.set("__boot", getBootId(env));
   const key = new Request(keyUrl.toString(), { method: "GET" });
   try {
     const hit = await cache.match(key);

@@ -17,6 +17,13 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  // Stable per-DEPLOY id (same across every isolate of one deploy, changes
+  // only on the next deploy) — custom-worker.ts folds env.CF_VERSION.id into
+  // the edge page-cache key so all isolates share one cache instead of each
+  // isolate fragmenting it with its own random boot id (2026-09-18 fix).
+  "version_metadata": {
+    "binding": "CF_VERSION"
+  },
   // Next's data/route cache (the timed-cache API routes: stats 60s, price 10s,
   // search 60s…) — same revalidate behaviour the app had on Vercel.
   "kv_namespaces": [
