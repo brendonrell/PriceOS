@@ -909,3 +909,12 @@ a.notif-item--link:hover { opacity: 0.85; }
     position: relative;
     top: -1px;
 }
+
+/* Marketplace empty-state notes (Brendon, 2026-09-18 — "impossible to read"):
+   the home note is 13px at 60% opacity. Here: full strength, bigger, bold. */
+.home-empty-note.mk-empty-note {
+    opacity: 1;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.4;
+}
