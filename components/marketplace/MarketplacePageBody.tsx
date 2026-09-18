@@ -65,7 +65,7 @@ const POLL_MS = 30_000;
 const CAROUSEL_SIZE = 18;
 const EAGER_TILES = 4;
 
-type MarketTab = 'artworks' | 'collectibles';
+type MarketTab = 'artworks' | 'collectibles' | 'shuffle';
 
 /* Canonical market glyphs (docs/GLYPHS.md §1) — LIST ✹ · SALE ✦ · OFFER ✶. */
 const EVENT_GLYPH: Record<MarketplaceEvent['type'], string> = {
@@ -360,9 +360,9 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
     const stats = feed?.stats ?? null;
     const loading = feed == null;
 
-    const tab = (id: MarketTab, label: string) => (
+    const tab = (id: MarketTab, label: string, display?: React.ReactNode, extraClass?: string) => (
         <div
-            className={`pill pill-l1${activeTab === id ? ' active' : ''}`}
+            className={`pill pill-l1${extraClass ? ` ${extraClass}` : ''}${activeTab === id ? ' active' : ''}`}
             role="button"
             tabIndex={0}
             title={label}
@@ -371,7 +371,7 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
                 if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectTab(id, label); }
             }}
         >
-            <span className="stat-name">{label}</span>
+            <span className="stat-name">{display ?? label}</span>
         </div>
     );
 
@@ -394,8 +394,10 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
         </div>
     );
 
-    const feedSort = sort.key === 'feed';
-    const carouselSort = !feedSort && sort.key !== 'social' && sort.key !== 'newusers';
+    /* Shuffle is an empty tab for now — nothing renders under it. */
+    const onShuffle = activeTab === 'shuffle';
+    const feedSort = !onShuffle && sort.key === 'feed';
+    const carouselSort = sort.key !== 'feed' && sort.key !== 'social' && sort.key !== 'newusers';
 
     return (
         <>
@@ -462,11 +464,12 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
                 <div className="profile-tabs-row">
                     {tab('artworks', 'Artworks')}
                     {tab('collectibles', 'Collectibles')}
+                    {tab('shuffle', 'Shuffle', <>⟳&#xFE0E;</>, 'pill-shuffle-icon')}
                 </div>
 
                 {/* The home's sort/facet bar, verbatim. Collectibles carries the
                     sorts + colorway + search only (no project facets). */}
-                {(activeTab === 'artworks' ? enriched.length > 0 : collAny) && (
+                {activeTab !== 'shuffle' && (activeTab === 'artworks' ? enriched.length > 0 : collAny) && (
                     <HomeProjectFacetBar
                         projects={enriched}
                         sortKey={sort.key}
@@ -589,7 +592,7 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
             )}
 
             {/* ☻ sorts — the home's social + new-signups feeds, same markup. */}
-            {sort.key === 'social' && (
+            {!onShuffle && sort.key === 'social' && (
                 <section className="home-uploads" aria-label="Social Feed">
                     <div className="home-section-head">
                         <span className="home-section-title">Social Feed</span>
@@ -599,7 +602,7 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
                     </div>
                 </section>
             )}
-            {sort.key === 'newusers' && (
+            {!onShuffle && sort.key === 'newusers' && (
                 <section className="home-uploads" aria-label="New Users">
                     <div className="home-section-head">
                         <span className="home-section-title">New Signups</span>
