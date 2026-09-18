@@ -993,6 +993,7 @@ export default function MarketSheets() {
     const wrapClass = [
         'cart-panel-wrap',
         'mk-sheet-wrap',
+        render.sheet === 'list' || render.sheet === 'offer' || render.sheet === 'offer-criteria' ? 'mk-pricing' : '',
         mounted ? 'mounted' : '',
         active ? 'active' : '',
     ].filter(Boolean).join(' ');
