@@ -580,3 +580,11 @@
     color: var(--gw-gold);
     position: relative;
 }
+
+/* Deep-linked door (Marketplace → Collectibles tap): a heavy outline so the
+   listing you came for is unmistakable. */
+.gw-door-focus {
+    outline: 3px solid var(--gw-ink, #fff);
+    outline-offset: 6px;
+    border-radius: 14px;
+}

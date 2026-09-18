@@ -857,3 +857,40 @@ a.notif-item--link:hover { opacity: 0.85; }
 /* The Completionism ⌂ is a door now — cursor + tap affordance only, the
    glyph itself is untouched. */
 .cpl-house-door { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+/* MARKETPLACE carousels (Brendon, 2026-09-18) — the price rides under every
+   listed tile. Home carousels hide the caption; the marketplace turns the
+   artwork caption (#id · price) back on. */
+.mk-listed-row .home-carousel-track .output-card .meta { display: flex; }
+/* Collectibles tile — same width as an artwork tile, art square on top, then
+   the name and the same .meta caption. */
+.mk-coll-tile {
+    flex: 0 0 auto;
+    width: min(31vw, 120px);
+    scroll-snap-align: start;
+    cursor: pointer;
+}
+.mk-coll-art {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 10px;
+    border: 2px solid var(--text-color);
+    border-radius: 6px;
+    overflow: hidden;
+}
+.mk-coll-art svg { width: 100%; height: 100%; }
+.mk-coll-name {
+    padding-top: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-color);
+}
+.mk-coll-tile .meta { padding-top: 2px; }
