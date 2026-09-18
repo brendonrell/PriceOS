@@ -32,6 +32,8 @@
  */
 
 import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useRouter } from 'next/navigation';
+import { useLongPress } from '@/lib/hooks/useLongPress';
 import { usePdNotifs } from '@/lib/state/PdNotifsContext';
 import { useModal } from '@/lib/state/ModalContext';
 import { PROFILE_LOGOS_BY_ID, isSigilLogo } from '@/lib/profile/profileLogos';
@@ -51,6 +53,11 @@ import {
 export function PeteyLogo() {
     const [rotated, setRotated] = useState(false);
     const { notifs } = usePdNotifs();
+    /* Door (Brendon, 2026-09-18): press-and-hold the corner logo → the PD
+       Marketplace. The hold swallows its own click, so the rotate tap doesn't
+       also fire. */
+    const router = useRouter();
+    const marketDoor = useLongPress(() => router.push('/marketplace'));
     const { open } = useModal();
 
     /* Profile Logo override — while you're on a profile whose owner picked a
@@ -149,6 +156,7 @@ export function PeteyLogo() {
             <div
                 className={`pd-logo${rotated ? ' rotated' : ''}${overridePetey ? ' petey-fixed' : ''}`}
                 onClick={() => setRotated((r) => !r)}
+                {...marketDoor}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
