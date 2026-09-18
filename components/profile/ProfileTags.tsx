@@ -11,7 +11,7 @@
  * colorway text colour so it's always legible on any repainted page).
  */
 
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { type Tag, tagPaintHex, tagTextOn } from '../../lib/tags/catalog';
 import { styleName } from '../../lib/profile/nameFont';
@@ -19,7 +19,7 @@ import { PriceMark } from '../brand/PriceMark';
 import { useModal } from '../../lib/state/ModalContext';
 import { useOwnedProjects } from '../../lib/hooks/useOwnedProjects';
 
-export function ProfileTags({ tags, font, paint, onTagTap, className, trailing }: {
+export function ProfileTags({ tags, font, paint, onTagTap, onTagLongPress, paintOverrides, className, trailing }: {
     tags: Tag[];
     /** Wrapper class — the hero's own row by default. The list surfaces
      *  (leaderboards, collectors, followers, dossier, owner line, search) pass
@@ -38,6 +38,12 @@ export function ProfileTags({ tags, font, paint, onTagTap, className, trailing }
      *  the owner of a WTBS-family chip can cycle THAT chip's treatment instead
      *  (Brendon, 2026-07-26). Absent = display-only. */
     onTagTap?: (t: Tag) => void;
+    /** Own profile only: longpress on a tag toggles it between the all-tags
+     *  paint and its own original colours (Brendon, 2026-09-18). */
+    onTagLongPress?: (t: Tag) => void;
+    /** Per-tag look chosen by longpress: 'own' = original colours, else a paint
+     *  id. A tag absent from the map follows `paint`. */
+    paintOverrides?: Record<string, string>;
     /** Rides at the END of the pill row — the equipped keychain mini charm
      *  (Brendon-confirmed placement, 2026-07-27). */
     trailing?: ReactNode;
@@ -53,6 +59,14 @@ export function ProfileTags({ tags, font, paint, onTagTap, className, trailing }
     /* Projects the VIEWER holds a piece of — a project tag for one of them
        wears the ownership check after the name (Brendon, 2026-07-29). */
     const ownedProjects = useOwnedProjects();
+    /* Longpress plumbing — a fired press swallows the click that follows it. */
+    const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const pressFired = useRef(false);
+    const pressStart = useRef<{ x: number; y: number } | null>(null);
+    const clearPress = () => {
+        if (pressTimer.current) clearTimeout(pressTimer.current);
+        pressTimer.current = null;
+    };
     /* A PROJECT tag goes TO that Project (Brendon, 2026-07-29) — it stands for a
        piece of work, so the tap is a visit, not a room. Every other tag opens
        its room as before. An owner handler (the customization menu on your own
@@ -62,7 +76,6 @@ export function ProfileTags({ tags, font, paint, onTagTap, className, trailing }
         open('tag', t.id);
     });
     if (!tags.length && !trailing) return null;
-    const paintHex = tagPaintHex(paint);
     return (
         <div className={className ?? 'profile-tags'} aria-label="Tags">
             {tags.map((t) => {
@@ -73,6 +86,8 @@ export function ProfileTags({ tags, font, paint, onTagTap, className, trailing }
                    custom colorway themes the whole profile instead of
                    stopping at these (Brendon, 2026-09-02). No paint: same
                    own-colour look as before. */
+                const ov = paintOverrides?.[t.id];
+                const paintHex = tagPaintHex(ov === undefined ? paint : ov === 'own' ? null : ov);
                 const hex = paintHex ?? t.color;
                 const textHex = paintHex ? tagTextOn(hex) : (t.textColor ?? tagTextOn(hex));
                 return (
@@ -86,6 +101,7 @@ export function ProfileTags({ tags, font, paint, onTagTap, className, trailing }
                            stroked letters and/or no pill edge. */
                         ...(t.stroke ? { ['--tag-stroke' as string]: t.stroke } : null),
                         cursor: 'pointer',
+                        ...(onTagLongPress ? { WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' } as const : null),
                     }}
                     title={t.label}
                     role="button"
@@ -93,7 +109,29 @@ export function ProfileTags({ tags, font, paint, onTagTap, className, trailing }
                     /* Tag pills ride inside rows that are themselves links, so
                        the tap is claimed here — it opens the room, it never
                        also fires the row underneath. */
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); tap(t); }}
+                    onPointerDown={onTagLongPress ? (e) => {
+                        pressFired.current = false;
+                        pressStart.current = { x: e.clientX, y: e.clientY };
+                        clearPress();
+                        pressTimer.current = setTimeout(() => {
+                            pressTimer.current = null;
+                            pressFired.current = true;
+                            onTagLongPress(t);
+                        }, 450);
+                    } : undefined}
+                    onPointerMove={onTagLongPress ? (e) => {
+                        const s0 = pressStart.current;
+                        if (s0 && Math.hypot(e.clientX - s0.x, e.clientY - s0.y) > 10) clearPress();
+                    } : undefined}
+                    onPointerUp={onTagLongPress ? clearPress : undefined}
+                    onPointerLeave={onTagLongPress ? clearPress : undefined}
+                    onPointerCancel={onTagLongPress ? clearPress : undefined}
+                    onContextMenu={onTagLongPress ? (e) => e.preventDefault() : undefined}
+                    onClick={(e) => {
+                        e.preventDefault(); e.stopPropagation();
+                        if (pressFired.current) { pressFired.current = false; return; }
+                        tap(t);
+                    }}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); tap(t); } }}
                 >
                     {t.svgGlyph === 'price'

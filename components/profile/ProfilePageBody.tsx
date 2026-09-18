@@ -96,6 +96,7 @@ import {
     drawFormula, formulaBlurb, newFormula, type Formula,
 } from '../../lib/tags/formula';
 import { useTeamTagStyle } from '../../lib/hooks/useTeamTagStyle';
+import { useTagPaintOverrides } from '../../lib/hooks/useTagPaintOverrides';
 import { useRudxaneRoll } from '../../lib/hooks/useRudxaneRoll';
 import { useClearedMonths } from '../../lib/hooks/useClearedMonths';
 import { useShownTags } from '../../lib/hooks/useShownTags';
@@ -375,6 +376,7 @@ function ProfilePageBodyInner({
     const ownerNameFont = isOwnProfile ? myNameFont : user.name_font;
     const { paint: myTagPaint, setPaint: setMyTagPaint } = useTagPaint(isOwnProfile ? user.tag_paint : undefined);
     const ownerTagPaint = isOwnProfile ? myTagPaint : user.tag_paint;
+    const { overrides: tagPaintOverrides, toggle: toggleTagPaint } = useTagPaintOverrides();
     /* FORMULA — the owner's own generative Unicode art (Brendon, 2026-07-29).
        The shelf is theirs; the roll redraws every load for every visitor. */
     const { formulas: myFormulas, save: saveFormulas } = useFormulas(isOwnProfile ? user.formulas : undefined);
@@ -2283,6 +2285,8 @@ function ProfilePageBodyInner({
                         font={ownerNameFont}
                         paint={ownerTagPaint}
                         onTagTap={isOwnProfile ? (t) => (isTeamStyleTag(t.id) ? cycleTeamTagStyle() : toggleEgg()) : undefined}
+                        onTagLongPress={isOwnProfile ? (t) => toggleTagPaint(t.id, ownerTagPaint ?? null) : undefined}
+                        paintOverrides={isOwnProfile ? tagPaintOverrides : undefined}
                         trailing={<EquippedCharm address={user.address} handle={user.handle ?? handle} />}
                     />
                     <HeroStickers
