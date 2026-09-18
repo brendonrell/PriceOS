@@ -894,3 +894,18 @@ a.notif-item--link:hover { opacity: 0.85; }
     color: var(--text-color);
 }
 .mk-coll-tile .meta { padding-top: 2px; }
+
+/* ✹ LISTED / ✶ OFFERS — the canonical Listed + Offer glyphs (docs/GLYPHS.md §1)
+   vanished in .stat-icon's Arial on iOS (no U+2739 / U+2736 there) and left a
+   blank gap that read as an indent. GLYPHS.md §5/§7: force Courier; ✹ at base
+   (same 14px as its row-mate ⟠); ✶ renders small + low, so bump it up and raise
+   it 1px. */
+.stat-icon-mk {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+}
+.stat-icon-mk--offer {
+    font-size: 18px;
+    position: relative;
+    top: -1px;
+}
