@@ -77,6 +77,104 @@
     border-color: color-mix(in srgb, var(--text-color) 70%, transparent);
 }
 
+/* ── PRICING SHEET — LIST / OFFER, built for human eyes ────────────────────
+   (Brendon, 2026-09-18: "it's not built for human eyes".) Scoped to
+   .mk-pricing so Cart / Exchange / Pal / Completionism are untouched.
+   Rules: nothing readable is faded, nothing readable is under 12px, the
+   input is 16px (iOS zooms the page on focus below that), every tap target
+   is 44px, and the disabled LIST button stays legible instead of ghosting. */
+.mk-pricing .cart-panel-box {
+    padding: 20px 18px 24px;
+    border-top: 1px solid color-mix(in srgb, var(--text-color) 30%, transparent);
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.45);
+}
+.mk-pricing .cart-panel-header { margin-bottom: 16px; }
+.mk-pricing .cart-panel-title { font-size: 17px; }
+.mk-pricing .cart-panel-title-count { opacity: 1; font-size: 15px; }
+.mk-pricing .cart-panel-close-x {
+    opacity: 1; font-size: 24px;
+    min-width: 44px; min-height: 44px;
+    display: inline-flex; align-items: center; justify-content: flex-end;
+}
+
+/* Row: art + name on top, price controls get their own full-width line. */
+.mk-pricing .cart-item-row {
+    flex-wrap: wrap; row-gap: 12px; column-gap: 12px;
+    padding: 14px 0 16px;
+    border-top: 1px dashed color-mix(in srgb, var(--text-color) 50%, transparent);
+}
+.mk-pricing .cart-item-thumb { width: 56px; height: 56px; border-radius: 4px; }
+.mk-pricing .cart-item-name { font-size: 16px; }
+.mk-pricing .cart-item-artist { font-size: 13px; opacity: 1; margin-top: 3px; }
+.mk-pricing .cart-item-delta { font-size: 13px; opacity: 1; margin-left: 8px; }
+.mk-pricing .cart-item-actions { order: 2; }
+.mk-pricing .cart-item-remove {
+    opacity: 1; font-size: 20px; padding: 0;
+    min-width: 44px; min-height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+.mk-pricing .mk-price-wrap {
+    order: 3; flex: 1 1 100%; width: 100%; gap: 10px;
+}
+.mk-pricing .mk-floor-chip {
+    opacity: 1; font-size: 12px; font-weight: bold; letter-spacing: 0.8px;
+    min-height: 44px; padding: 0 12px; border-radius: 6px;
+    border: 1.5px dashed color-mix(in srgb, var(--text-color) 65%, transparent);
+}
+.mk-pricing .mk-price-input {
+    flex: 1 1 auto; width: auto; min-width: 0;
+    min-height: 44px; box-sizing: border-box;
+    font-size: 18px; padding: 8px 12px;
+    border: 2px solid color-mix(in srgb, var(--text-color) 75%, transparent);
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--text-color) 10%, transparent);
+}
+.mk-pricing .mk-price-input:focus {
+    border-color: var(--text-color);
+    background: color-mix(in srgb, var(--text-color) 16%, transparent);
+}
+.mk-pricing .mk-price-input::placeholder {
+    color: color-mix(in srgb, var(--text-color) 55%, var(--bg-color));
+    opacity: 1;
+}
+.mk-pricing .mk-price-unit { opacity: 1; font-size: 14px; font-weight: bold; letter-spacing: 0.6px; }
+
+/* Criteria (collection / trait) offer. */
+.mk-pricing .mk-criteria-target { font-size: 15px; }
+.mk-pricing .mk-criteria-count { font-size: 13px; opacity: 1; }
+.mk-pricing .mk-price-wrap--solo { flex: 0 0 auto; width: auto; }
+.mk-pricing .mk-price-wrap--solo .mk-price-input { width: 150px; flex: 0 0 auto; font-size: 20px; }
+
+/* Duration pills. */
+.mk-pricing .cart-panel-totals { padding-top: 16px; }
+.mk-pricing .mk-duration-row { gap: 8px; padding-bottom: 16px; }
+.mk-pricing .mk-duration-pill {
+    opacity: 1; min-height: 44px; font-size: 13px; letter-spacing: 0.8px;
+    border: 1.5px solid color-mix(in srgb, var(--text-color) 55%, transparent);
+    border-radius: 6px;
+}
+.mk-pricing .mk-duration-pill.is-active {
+    background: var(--text-color); color: var(--bg-color);
+    border-color: var(--text-color);
+}
+
+/* Totals. */
+.mk-pricing .cart-panel-subtotal-row { font-size: 14px; }
+.mk-pricing .cart-panel-subtotal-label { opacity: 1; }
+.mk-pricing .cart-panel-subtotal-val { font-size: 17px; }
+.mk-pricing .cart-panel-fees-row { font-size: 13px; opacity: 1; margin-top: 6px; }
+
+/* Confirm button — disabled stays readable, never a ghost. */
+.mk-pricing .cart-panel-buy-all {
+    margin-top: 18px; padding: 16px; font-size: 16px; border-radius: 6px;
+}
+.mk-pricing .cart-panel-buy-all:disabled {
+    opacity: 1; cursor: not-allowed;
+    background: color-mix(in srgb, var(--text-color) 22%, var(--bg-color));
+    color: var(--text-color);
+    border: 1.5px dashed color-mix(in srgb, var(--text-color) 60%, transparent);
+}
+
 /* Offers panel rows. */
 .mk-scope-tag {
     margin-left: 6px;
