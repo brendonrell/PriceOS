@@ -22,7 +22,7 @@
  * 'pd:project-refresh' plus the visible-tab poll fallback — the home pattern.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Hero from '../hero/Hero';
 import ArtworkCard from '../ArtworkCard';
 import { GhostCarousels } from '../home/HomeGhosts';
@@ -201,6 +201,74 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
         window.addEventListener('pd:follows-changed', onCh);
         return () => { cancelled = true; window.removeEventListener('pd:follows-changed', onCh); };
     }, [siweAddress, viewerHandle]);
+
+    /* Shuffle + Wanted are non-essential — the home's hide-not-wrap behaviour,
+       verbatim: each shows only when it fits on the line with its row-mates,
+       measured (not a breakpoint) and re-checked on resize/rotate/font load.
+       The CSS is the home's own, keyed on the same two row ids. */
+    const tabsRowRef = useRef<HTMLDivElement>(null);
+    const [hideShuffle, setHideShuffle] = useState(false);
+    useEffect(() => {
+        const row = tabsRowRef.current;
+        if (!row || typeof window === 'undefined') return;
+        const measure = () => {
+            row.classList.add('tabs-measuring');
+            const pills = row.querySelectorAll<HTMLElement>('.pill-l1');
+            const shuf = row.querySelector<HTMLElement>('.pill-shuffle-icon');
+            let wrapped = false;
+            if (pills.length && shuf) {
+                wrapped = shuf.getBoundingClientRect().top > pills[0].getBoundingClientRect().top + 2;
+            }
+            row.classList.remove('tabs-measuring');
+            setHideShuffle(wrapped);
+        };
+        measure();
+        const ro = new ResizeObserver(measure);
+        ro.observe(row);
+        window.addEventListener('resize', measure);
+        window.addEventListener('orientationchange', measure);
+        const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
+        if (fonts) fonts.ready.then(measure).catch(() => {});
+        return () => {
+            ro.disconnect();
+            window.removeEventListener('resize', measure);
+            window.removeEventListener('orientationchange', measure);
+        };
+    }, []);
+
+    const actionRowRef = useRef<HTMLDivElement>(null);
+    const [hideWanted, setHideWanted] = useState(false);
+    useEffect(() => {
+        const row = actionRowRef.current;
+        if (!row || typeof window === 'undefined') return;
+        const measure = () => {
+            if (row.getBoundingClientRect().width === 0) return;
+            row.classList.add('row-measuring');
+            const main = row.querySelector<HTMLElement>('.btn-mint');
+            const side = row.querySelector<HTMLElement>('.btn-soundtrack');
+            let wrapped = false;
+            if (main && side) {
+                const mainR = main.getBoundingClientRect();
+                const sideR = side.getBoundingClientRect();
+                if (mainR.height === 0 || sideR.height === 0) { row.classList.remove('row-measuring'); return; }
+                wrapped = sideR.top >= mainR.bottom - 2;
+            }
+            row.classList.remove('row-measuring');
+            setHideWanted(wrapped);
+        };
+        measure();
+        const ro = new ResizeObserver(measure);
+        ro.observe(row);
+        window.addEventListener('resize', measure);
+        window.addEventListener('orientationchange', measure);
+        const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
+        if (fonts) fonts.ready.then(measure).catch(() => {});
+        return () => {
+            ro.disconnect();
+            window.removeEventListener('resize', measure);
+            window.removeEventListener('orientationchange', measure);
+        };
+    }, []);
 
     const [feed, setFeed] = useState<MarketplaceResponse | null>(initial);
     useEffect(() => {
@@ -447,7 +515,11 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
             >
                 {/* Action row — PURCHASE PAL door (lands on the Purchase tab)
                     + WANTED (button only for now), the home's action-row pair. */}
-                <div className="action-row">
+                <div
+                    className={`action-row${hideWanted ? ' hide-stickers' : ''}`}
+                    id="homeActionRow"
+                    ref={actionRowRef}
+                >
                     <button
                         className="btn-mint btn-explore"
                         title="Purchase Pal"
@@ -461,7 +533,11 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
                 </div>
 
                 {/* Tab row — same pill markup as home. */}
-                <div className="profile-tabs-row">
+                <div
+                    className={`profile-tabs-row${hideShuffle ? ' hide-shuffle' : ''}`}
+                    id="homeTabsRow"
+                    ref={tabsRowRef}
+                >
                     {tab('artworks', 'Artworks')}
                     {tab('collectibles', 'Collectibles')}
                     {tab('shuffle', 'Shuffle', <>⟳&#xFE0E;</>, 'pill-shuffle-icon')}
