@@ -423,7 +423,7 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
                 statsRow={
                     <div className="hero-line stats-row">
                         <span className="stat-item">
-                            <span className="stat-icon">{`✹${VS15}`}</span>{' '}
+                            <span className="stat-icon stat-icon-mk">{`✹${VS15}`}</span>{' '}
                             <span className="stat-val">{stats ? stats.listed : '—'} LISTED</span>
                         </span>
                         <span className="stat-item stat-item-vol">
@@ -431,7 +431,7 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
                             <span className="stat-val stat-val-vol">{stats ? Math.round(stats.volume_eth) : '—'} VOL</span>
                         </span>
                         <span className="stat-item">
-                            <span className="stat-icon">{`✶${VS15}`}</span>{' '}
+                            <span className="stat-icon stat-icon-mk stat-icon-mk--offer">{`✶${VS15}`}</span>{' '}
                             <span className="stat-val">{stats ? stats.offers : '—'} OFFERS</span>
                         </span>
                     </div>
