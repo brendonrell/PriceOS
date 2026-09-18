@@ -335,6 +335,12 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
         return { stickers, gnomes };
     }, [feed, searchQuery, priceMin, priceMax, sort.key, dirMult]);
     const collEmpty = collRows.stickers.length === 0 && collRows.gnomes.length === 0;
+    /* The bar only shows when there is something to sort — an empty Collectibles
+       tab shows its note alone, same as an empty Artworks tab. Counted BEFORE
+       the search/price filters so a filter can never strand its own bar. */
+    const collAny =
+        (feed?.collectibles?.stickers ?? []).some((x) => SHEETS.some((sh) => sh.id === x.sheet_id)) ||
+        (feed?.collectibles?.gnomes ?? []).some((x) => !!getProject(x.project_id));
     const floorOf = (xs: { price_eth: number }[]) => xs.reduce((m, x) => Math.min(m, x.price_eth), Infinity);
 
     const tape = useMemo(
@@ -460,7 +466,7 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
 
                 {/* The home's sort/facet bar, verbatim. Collectibles carries the
                     sorts + colorway + search only (no project facets). */}
-                {(activeTab === 'artworks' ? enriched.length > 0 : true) && (
+                {(activeTab === 'artworks' ? enriched.length > 0 : collAny) && (
                     <HomeProjectFacetBar
                         projects={enriched}
                         sortKey={sort.key}
@@ -479,7 +485,7 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
                 <section aria-label="Artworks" className="mk-listed-row">
                     {loading && <GhostCarousels perRow={CAROUSEL_SIZE} />}
                     {!loading && visibleGroups.length === 0 && (
-                        <div className="home-empty-note">
+                        <div className="home-empty-note mk-empty-note">
                             {groups.length === 0
                                 ? 'Nothing listed right now — the next listing lands here the moment it\u2019s live.'
                                 : 'No listings match — clear the filters to see them all.'}
@@ -501,7 +507,7 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
                 <section aria-label="Collectibles" className="mk-listed-row">
                     {loading && <GhostCarousels perRow={CAROUSEL_SIZE} />}
                     {!loading && collEmpty && (
-                        <div className="home-empty-note">
+                        <div className="home-empty-note mk-empty-note">
                             Nothing listed right now — the next listing lands here the moment it&apos;s live.
                         </div>
                     )}
@@ -549,7 +555,7 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
                             <GhostFeedRows />
                         ) : activeTab === 'artworks' ? (
                             tape.length === 0 ? (
-                                <div className="home-empty-note">
+                                <div className="home-empty-note mk-empty-note">
                                     No market moves yet — listings, sales and offers land here live.
                                 </div>
                             ) : (
@@ -561,7 +567,7 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
                                 ))
                             )
                         ) : collTape.length === 0 ? (
-                            <div className="home-empty-note">
+                            <div className="home-empty-note mk-empty-note">
                                 No market moves yet — listings, sales and offers land here live.
                             </div>
                         ) : (
