@@ -287,7 +287,7 @@ export default function HomeProjectFacetBar({
         applySort('social', 'desc');
     };
 
-    if (projects.length === 0 && !leadPills) return null;
+    if (projects.length === 0 && !leadPills && facets === undefined) return null;
 
     return (
         <div className="home-facet-bar">
