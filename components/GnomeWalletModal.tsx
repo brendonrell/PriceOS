@@ -123,9 +123,11 @@ type DealPhase = 'idle' | 'striking' | 'counting';
    carry the sign controls; market doors show the keeper + the price and,
    for a signed-in stranger, the STRIKE THE DEAL flow (the counting house). */
 function GnomeDoor({
-    g, mine, onSign, canDeal, onSettled, showToast,
+    g, mine, onSign, canDeal, onSettled, showToast, focus,
 }: {
     g: GnomeAwakening;
+    /** Deep-linked door — scrolled into view + outlined. */
+    focus?: boolean;
     mine: boolean;
     /** Hang (ask > 0) or take down (null) the sign — burrow wing only. */
     onSign?: (projectId: string, ask: number | null) => Promise<boolean>;
@@ -251,8 +253,13 @@ function GnomeDoor({
         }
     };
 
+    const doorRef = useRef<HTMLDivElement | null>(null);
+    useEffect(() => {
+        if (focus) doorRef.current?.scrollIntoView({ block: 'center' });
+    }, [focus]);
+
     return (
-        <div className="gw-door">
+        <div className={`gw-door${focus ? ' gw-door-focus' : ''}`} ref={doorRef}>
             <div className={`gw-door-rarity gw-r-${g.rarity.toLowerCase()}`}>{g.rarity}</div>
             <div className="gw-door-arch">
                 <div className="gw-door-hinge gw-door-hinge-top" aria-hidden="true" />
@@ -356,8 +363,13 @@ export default function GnomeWalletModal() {
     const { showToast } = useToast();
     const { isOpen, isTopStacked } = useModalLayer('gnomewallet');
 
+    /* Deep link — open('gnomewallet', `market:${projectId}`) lands in the market
+       wing with that door lit (the Marketplace's Collectibles tap). */
+    const focusProject = typeof openModal?.payload === 'string' && openModal.payload.startsWith('market:')
+        ? openModal.payload.slice('market:'.length).toLowerCase()
+        : null;
     const [wing, setWing] = useState<Wing>('burrow');
-    useEffect(() => { if (isOpen) setWing('burrow'); }, [isOpen]);
+    useEffect(() => { if (isOpen) setWing(focusProject ? 'market' : 'burrow'); }, [isOpen, focusProject]);
 
     const [gnomes, setGnomes] = useState<GnomeAwakening[] | null>(null);
     const loadMine = () => {
@@ -504,6 +516,7 @@ export default function GnomeWalletModal() {
                                 {market.map((g) => (
                                     <GnomeDoor
                                         key={g.project_id}
+                                        focus={g.project_id.toLowerCase() === focusProject}
                                         g={g}
                                         mine={false}
                                         canDeal={!!siweAddress && g.owner_address.toLowerCase() !== siweAddress.toLowerCase()}
