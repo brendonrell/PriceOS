@@ -128,7 +128,19 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
        profile. Peeled state has no account sync yet, so it only applies
        during a live local edit session — the resting/visitor display keeps
        reading the account snapshot as-is, same as offSheets/offIds above. */
-    const peeledSheets = editingLive ? livePrefs.peeledSheets : new Set(owned.map((s) => s.sheet));
+    /* ⛔ THE VANISHING PILE (Brendon, 2026-09-19: "tapping my sticker pile is
+       supposed to launch the manager, instead it toggles hiding and showing
+       them"). A tap flips `editingLive`, which swaps the peel set from the
+       resting one (every owned sheet) to the DEVICE's local one — and peel
+       state has no account sync, so on a device with nothing peeled locally
+       that set is EMPTY. Every sticker went inactive, the hero returned only
+       the manager, and the manager (which anchors to `.hero-stickers`) had no
+       anchor → it rendered invisible over the page while the pile vanished; the
+       next tap closed it and the pile came back. An empty local set now falls
+       back to the resting one, so opening the manager never changes the pile. */
+    const peeledSheets = editingLive && livePrefs.peeledSheets.size > 0
+        ? livePrefs.peeledSheets
+        : new Set(owned.map((s) => s.sheet));
     /* The look: local live state while actively editing, the account-synced
        blob otherwise — for a visitor AND for the owner's own resting (not
        currently editing) view alike, so the picture shown always matches
@@ -374,8 +386,18 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
        owner's public flag, not whatever the visitor happens to have set on
        their own account (that used to hide every profile a hider visited,
        not just their own). */
-    if (isOwn ? notifs.sticker : ownerHidden) return manager;
-    if (locked ? lockedItems.length === 0 : active.length === 0) return manager;
+    /* Hidden / empty pile: the manager still needs its `.hero-stickers` anchor
+       while it's open, or it renders invisible (see THE VANISHING PILE above).
+       Same shape as `wrap` (div › canvas + manager) so the modal is never
+       remounted mid-edit when the pile flips between empty and full. */
+    const hiddenShell = () => (mgrOpen && manager ? (
+        <div className="hero-stickers" aria-label="Stickers">
+            <div className="hero-stickers-canvas" />
+            {manager}
+        </div>
+    ) : manager);
+    if (isOwn ? notifs.sticker : ownerHidden) return hiddenShell();
+    if (locked ? lockedItems.length === 0 : active.length === 0) return hiddenShell();
 
     const baseTilt = tiltDeg(tilt);
     /* Per-sticker render height. Output artworks render at half (they read big),
