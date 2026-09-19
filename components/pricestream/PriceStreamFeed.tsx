@@ -245,9 +245,9 @@ function ActionRail({ card }: { card: PriceStreamCard | null }) {
     };
 
     const onNote = () => {
-        if (!soundtrack) { showToast('No soundtrack for this project', 3200); return; }
+        if (!soundtrack) return;
         fmPlay({ playlistId: soundtrack.playlistId, label: soundtrack.label, slug: card.slug });
-        showToast('miniplayer: ON AIR \u00b7 the note is now a disc \u00b7 tap it to pause', 3800);
+        showToast('miniplayer: ON AIR \u00b7 tap the disc to pause', 3200);
     };
 
     const onStar = () => {
@@ -266,8 +266,12 @@ function ActionRail({ card }: { card: PriceStreamCard | null }) {
                 {/* Soundtrack slot — sits between Share and Star. While the miniplayer is
                     live the FmBar disc docks exactly over it (styles/fm.css), so this
                     circle steps aside (visibility, not layout — the rail never shifts). */}
+                {/* Soundtrack pops in (key = the card, so it replays every swipe) as the
+                    visual cue that THIS piece has one; no soundtrack → the slot holds
+                    its space, empty, so Share/Star never shift. */}
                 <div
-                    className={`ps-note-rail${fmLive ? ' is-docked' : ''}`}
+                    key={`note:${card.slug}:${card.tokenId}`}
+                    className={`ps-note-rail${soundtrack ? ' is-pop' : ' is-empty'}${fmLive ? ' is-docked' : ''}`}
                     title={soundtrack ? `Soundtrack \u2014 ${soundtrack.label}` : 'Soundtrack'}
                     onClick={onNote}
                 >
@@ -428,7 +432,7 @@ export default function PriceStreamFeed() {
         if (!isOpen) return;
         document.body.classList.add('pd-ps-open');
         window.dispatchEvent(new Event('pd:ps-open-changed'));
-        if (getFm().station) showToast('miniplayer: docked as the disc \u00b7 tap it to pause', 3800);
+        if (getFm().station) showToast('miniplayer: ON AIR \u00b7 tap the disc to pause', 3200);
         return () => {
             document.body.classList.remove('pd-ps-open');
             document.body.style.removeProperty('--ps-dock-accent');
@@ -446,7 +450,7 @@ export default function PriceStreamFeed() {
         prevCardKey.current = key;
         if (prev && key && prev !== key && getFm().station) {
             fmClose();
-            showToast('miniplayer: CLOSED \u00b7 tap the note to play this one', 3200);
+            showToast('miniplayer: OFF \u00b7 tap \u266B\uFE0E for this piece', 3200);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, activeCard?.slug, activeCard?.tokenId]);
