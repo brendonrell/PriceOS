@@ -27,10 +27,6 @@ const PLACEMENTS_KEY = STATE_CACHE_KEYS.stickerPlacements;
 const PLACE_ASPECT_KEY = STATE_CACHE_KEYS.stickerPlaceAspect;
 const SPREADS_KEY = STATE_CACHE_KEYS.stickerSpreads;
 const LOCK_KEY = STATE_CACHE_KEYS.stickerColourLock;
-/* THE PEEL, source of truth (moved here from StickersModal, 2026-09-13):
-   a bought sheet is SEALED until peeled. Sealed sheets must never feed the
-   profile — this is what gates that, not just the market's own display. */
-const PEELED_KEY = 'pd_sticker_peeled';
 const EVT = 'pd:stickers-changed';
 
 function readArr(key: string): string[] {
@@ -231,15 +227,6 @@ if (typeof window !== 'undefined') {
 export function getOwnedIds(): string[] { return readArr(OWNED_KEY); }
 export function getOffSheets(): string[] { return readArr(OFF_SHEETS_KEY); }
 export function getOffIds(): string[] { return readArr(OFF_IDS_KEY); }
-export function getPeeledSheets(): string[] { return readArr(PEELED_KEY); }
-
-/** Peel a sheet open — the ONLY way its stickers become usable on the profile.
- *  Idempotent; fires the same change event as every other sticker write so
- *  the hero + manager pick it up immediately. */
-export function peelSheet(sheetId: SheetId) {
-    const cur = readArr(PEELED_KEY);
-    if (!cur.includes(sheetId)) writeArr(PEELED_KEY, [...cur, sheetId]);
-}
 
 /** True when every sticker in the sheet is already owned. */
 export function ownsSheet(sheetId: SheetId, owned: string[] = getOwnedIds()): boolean {
@@ -287,19 +274,17 @@ export function toggleSheetActive(sheetId: SheetId) {
 /** Turn a single sticker off/on for the profile. */
 export function toggleStickerActive(id: string) { toggleIn(OFF_IDS_KEY, id); }
 
-/** A sticker is active when its sheet isn't off, it isn't individually off,
- *  AND its sheet has been peeled — sealed stickers never feed the profile,
- *  no matter their on/off state (Brendon, 2026-09-13). */
-export function isActive(s: Sticker, offSheets: Set<string>, offIds: Set<string>, peeledSheets: Set<string>): boolean {
-    return peeledSheets.has(s.sheet) && !offSheets.has(s.sheet) && !offIds.has(s.id);
+/** A sticker is active when its sheet isn't off AND it isn't individually off. */
+export function isActive(s: Sticker, offSheets: Set<string>, offIds: Set<string>): boolean {
+    return !offSheets.has(s.sheet) && !offIds.has(s.id);
 }
 
 /* ── Hooks ───────────────────────────────────────────────────────────────── */
 function useLedger() {
     // Start empty so SSR + first client render agree, then hydrate on mount.
-    const [v, setV] = useState({ owned: [] as string[], offSheets: [] as string[], offIds: [] as string[], peeledSheets: [] as string[] });
+    const [v, setV] = useState({ owned: [] as string[], offSheets: [] as string[], offIds: [] as string[] });
     useEffect(() => {
-        const sync = () => setV({ owned: getOwnedIds(), offSheets: getOffSheets(), offIds: getOffIds(), peeledSheets: getPeeledSheets() });
+        const sync = () => setV({ owned: getOwnedIds(), offSheets: getOffSheets(), offIds: getOffIds() });
         sync();
         window.addEventListener(EVT, sync);
         window.addEventListener('storage', sync);
@@ -315,29 +300,20 @@ export function useOwnedStickerIds(): string[] {
     return useLedger().owned;
 }
 
-/** The full set a profile owner holds: your live device ledger while you're
- *  actively editing in the manager (`preferLocal`), or the account-synced
- *  `sticker_state.owned` otherwise — which is every other case: the resting
- *  display on your own profile, any visitor, any device or browser context
- *  (Brendon, 2026-08-22: "stickers should have NO local reliance... we want
- *  no localStorage-only features" — the steady-state display never depends
- *  on what happens to be sitting in this browser's storage). */
-export function useOwnedFor(handle: string | null | undefined, preferLocal: boolean, accountOwnedIds?: string[] | null): Sticker[] {
+/** The full set a profile owner holds: the seed (e.g. Brendon) plus, on your own
+    profile, your simulated purchases. */
+export function useOwnedFor(handle: string | null | undefined, isOwn: boolean): Sticker[] {
     const { owned } = useLedger();
     return useMemo(() => {
         const seed = ownedStickers(handle);
+        if (!isOwn) return seed;
         const map = new Map<string, Sticker>(seed.map((s) => [s.id, s]));
-        /* Same fallback as HeroStickers' layoutMap (Brendon, 2026-09-15): a
-           device whose local ledger has never synced falls back to the
-           account snapshot rather than flashing to empty the instant a tap
-           flips preferLocal true. */
-        const extra = preferLocal ? (owned.length > 0 ? owned : (accountOwnedIds ?? [])) : (accountOwnedIds ?? []);
-        for (const id of extra) {
+        for (const id of owned) {
             const s = stickerById(id);
             if (s) map.set(id, s);
         }
         return [...map.values()];
-    }, [handle, preferLocal, owned, accountOwnedIds]);
+    }, [handle, isOwn, owned]);
 }
 
 /** Non-reactive owned list (seed + purchases) — for the manager's local copy. */
@@ -353,10 +329,9 @@ export function computeOwnedFor(handle: string | null | undefined): Sticker[] {
 
 /** Owned + active sets for the current viewer, live. */
 export function useStickerPrefs() {
-    const { offSheets, offIds, peeledSheets } = useLedger();
+    const { offSheets, offIds } = useLedger();
     return useMemo(() => ({
         offSheets: new Set(offSheets),
         offIds: new Set(offIds),
-        peeledSheets: new Set(peeledSheets),
-    }), [offSheets, offIds, peeledSheets]);
+    }), [offSheets, offIds]);
 }
