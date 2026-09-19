@@ -15960,14 +15960,28 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
 /* ♫︎ — the soundtrack note (same glyph as the output page's soundtrack button).
    Steps aside while the miniplayer's disc is docked over this slot. */
 .ps-note-ico {
-    font-size: 24px;
+    font-size: 26px;
     position: relative;
-    top: -2px;
+    top: 0;
     color: var(--ps-accent-fg, #e0e0e0);
     font-family: 'Courier New', Courier, monospace;
     transition: color 0.3s;
 }
 .ps-note-rail.is-docked { visibility: hidden; }
+/* No soundtrack on this piece: the slot keeps its space (Share/Star never
+   shift) but shows nothing and takes no taps. */
+.ps-note-rail.is-empty { visibility: hidden; pointer-events: none; }
+/* Soundtrack present: the circle POPS in — the cue that this piece has one.
+   Replays on every swipe (the element is keyed to the card). */
+@keyframes ps-note-pop {
+    0%   { transform: scale(0); }
+    60%  { transform: scale(1.22); }
+    100% { transform: scale(1); }
+}
+.ps-note-rail.is-pop { animation: ps-note-pop 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.4) 0.15s backwards; }
+@media (prefers-reduced-motion: reduce) {
+    .ps-note-rail.is-pop { animation: none; }
+}
 .ps-star-ico {
     font-size: 31px;
     position: relative;
@@ -15981,6 +15995,13 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
    (Brendon, 2026-09-16). */
 .ps-star-ico.is-filled {
     font-size: 35px;
+}
+/* The OUTLINE ☆ reads extra bold (Brendon, 2026-09-19: "bolder than it is
+   now") — a glyph has no weight axis in Courier, so the stroke is thickened
+   with a text-stroke in the same colour. Filled ★ is already solid. */
+.ps-star-ico:not(.is-filled) {
+    -webkit-text-stroke: 1.6px var(--ps-accent-fg, #e0e0e0);
+    font-weight: 900;
 }
 .ps-info {
     position: absolute;
