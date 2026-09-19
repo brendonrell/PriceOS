@@ -245,6 +245,11 @@ export const STATE_CACHE_KEYS = {
      *  toggle. Read + written by lib/profile/profileDailySaved. Envelope
      *  (`profileDailySaved`). */
     profileDailySaved: 'pd_profile_daily_saved',
+    /** PROFILE PRESET MODE — which Presets-row mode pill (match/accent/pair/
+     *  random) was last selected, so the customization menu reopens where the
+     *  owner left it. Read + written by lib/profile/profilePresetMode.
+     *  Envelope (`profilePresetMode`). */
+    profilePresetMode: 'pd_profile_preset_mode',
 } as const;
 
 /** Fired after a server snapshot is written into the caches. Any context that
@@ -592,6 +597,9 @@ export function hydrateFromRow(row: UserRow): void {
         }
         if (s.profileDailySaved && typeof s.profileDailySaved === 'object') {
             localStorage.setItem(STATE_CACHE_KEYS.profileDailySaved, JSON.stringify(s.profileDailySaved));
+        }
+        if (typeof s.profilePresetMode === 'string') {
+            localStorage.setItem(STATE_CACHE_KEYS.profilePresetMode, s.profilePresetMode);
         }
         // homeShuffleColorway is intentionally NOT cached to localStorage
         // (Brendon, 2026-09-02: "db not localstorage") — it lives only in the
