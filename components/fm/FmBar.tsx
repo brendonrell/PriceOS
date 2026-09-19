@@ -630,6 +630,10 @@ export default function FmBar() {
         showToast('miniplayer: CLOSED');
     };
 
+    /* Latest closePlayer for the bus's close() (the driver effect is memoised). */
+    const closeRef = useRef<() => void>(() => {});
+    closeRef.current = closePlayer;
+
     const onPlayTap = () => {
         if (status === 'playing') {
             wantPlayRef.current = false;
@@ -684,6 +688,7 @@ export default function FmBar() {
             else playerRef.current?.playVideo();
         },
         next: () => playerRef.current?.nextVideo(),
+        close: () => closeRef.current(),
     }), [start, startRun]);
     useEffect(() => {
         publishFm({ status, station: onAir, trackTitle });
