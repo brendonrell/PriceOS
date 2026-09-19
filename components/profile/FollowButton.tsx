@@ -21,9 +21,14 @@ import { useModal } from '../../lib/state/ModalContext';
 export default function FollowButton({
   targetAddress,
   targetHandle,
+  onState,
 }: {
   targetAddress: string;
   targetHandle?: string | null;
+  /** Optional: reports whether the button is currently showing the FOLLOWED
+   *  state (own-profile "Followed" counts) — lets a neighbour tighten its label
+   *  when space is short (PriceStream's OFFER, Brendon 2026-09-19). */
+  onState?: (followed: boolean) => void;
 }) {
   const { siweAddress } = useAuth();
   const { showToast } = useToast();
@@ -51,6 +56,10 @@ export default function FollowButton({
       .catch(() => {});
     return () => { cancelled = true; };
   }, [me, target, isSelf]);
+
+  useEffect(() => { onState?.(isSelf || following); },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isSelf, following]);
 
   /* Own profile: a "Followed" button that opens your Followers modal. */
   if (isSelf) {
