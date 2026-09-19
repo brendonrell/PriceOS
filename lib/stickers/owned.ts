@@ -327,7 +327,11 @@ export function useOwnedFor(handle: string | null | undefined, preferLocal: bool
     return useMemo(() => {
         const seed = ownedStickers(handle);
         const map = new Map<string, Sticker>(seed.map((s) => [s.id, s]));
-        const extra = preferLocal ? owned : (accountOwnedIds ?? []);
+        /* Same fallback as HeroStickers' layoutMap (Brendon, 2026-09-15): a
+           device whose local ledger has never synced falls back to the
+           account snapshot rather than flashing to empty the instant a tap
+           flips preferLocal true. */
+        const extra = preferLocal ? (owned.length > 0 ? owned : (accountOwnedIds ?? [])) : (accountOwnedIds ?? []);
         for (const id of extra) {
             const s = stickerById(id);
             if (s) map.set(id, s);
