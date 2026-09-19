@@ -15934,6 +15934,7 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     gap: 12px;
 }
 .ps-share-rail,
+.ps-note-rail,
 .ps-star-rail {
     width: 44px; height: 44px;
     border-radius: 50%;
@@ -15956,6 +15957,17 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     font-family: 'Courier New', Courier, monospace;
     transition: color 0.3s;
 }
+/* ♫︎ — the soundtrack note (same glyph as the output page's soundtrack button).
+   Steps aside while the miniplayer's disc is docked over this slot. */
+.ps-note-ico {
+    font-size: 24px;
+    position: relative;
+    top: -2px;
+    color: var(--ps-accent-fg, #e0e0e0);
+    font-family: 'Courier New', Courier, monospace;
+    transition: color 0.3s;
+}
+.ps-note-rail.is-docked { visibility: hidden; }
 .ps-star-ico {
     font-size: 31px;
     position: relative;
