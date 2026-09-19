@@ -582,6 +582,37 @@ export function applyHashSynSample(bgHex: string) {
     body.classList.toggle('bg-is-yellow', isYellowBg(bgHex));
 }
 
+/* Market Pulse Colorway (Brendon, 2026-09-19) — marketplace-only bg pulse
+   driven by lib/engines/marketPulseEngine. Same narrow-writer pattern as
+   applyHashSynSample above: touches ONLY the bg family (--bg-color,
+   --modal-bg, chrome tint, red/yellow guards), never the colorway `key`,
+   body classes, buttons or pills — so whatever colorway is actually active
+   keeps its own polarity untouched while the bg quietly breathes lighter/
+   darker on top of it. "Not red/green — a pulsating lighter/darker version
+   of whatever color happens to be there." */
+export function applyMarketPulseSample(bgHex: string) {
+    const root = document.documentElement;
+    const body = document.body;
+
+    const hex = bgHex.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+
+    root.style.setProperty('--bg-color', bgHex);
+    root.style.setProperty('--modal-bg', `rgba(${r},${g},${b},0.98)`);
+    body.style.backgroundColor = bgHex;
+
+    const tcMeta = document.querySelector('meta[name="theme-color"]');
+    if (tcMeta) {
+        const dimDark = body.classList.contains('ambient-dim-on') && !body.classList.contains('is-pwa');
+        tcMeta.setAttribute('content', dimDark ? '#03020a' : bgHex);
+    }
+
+    body.classList.toggle('bg-is-red', isRedBg(bgHex));
+    body.classList.toggle('bg-is-yellow', isYellowBg(bgHex));
+}
+
 /* Single source of truth for "what does THIS path paint?" — used by BOTH the
    initial boot effect AND the server-hydration handler, so the two can never
    diverge. (That divergence WAS the home-stays-orange bug: boot painted
