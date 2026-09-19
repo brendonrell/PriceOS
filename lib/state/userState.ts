@@ -79,6 +79,10 @@ export const STATE_CACHE_KEYS = {
     stickerColourLock: 'pd_sticker_colour_lock',
     hazeColor: 'pd_haze_color',
     hazeVariation: 'pd_haze_variation',
+    /** Market Pulse Colorway toggle (marketplace title's single-tap Easter
+     *  egg). Read + written by lib/marketplace/marketPulseStore; lives inside
+     *  the settings envelope (`marketPulse`). */
+    marketPulse: 'pd_market_pulse',
     sort: 'pd_settings_sort',
     notifs: 'pd_settings_notifs',
     showcaseStyle: 'pd_user_showcase_mode',
@@ -476,6 +480,8 @@ export function hydrateFromRow(row: UserRow): void {
         // (default OFF), so only an EXPLICIT enable (breadcrumbsPaused === false)
         // writes the on value; undefined/true stay paused.
         localStorage.setItem('pd_breadcrumbs_paused', s.breadcrumbsPaused === false ? '0' : '1');
+        // Market Pulse — default OFF; only an explicit true turns it on.
+        localStorage.setItem(STATE_CACHE_KEYS.marketPulse, s.marketPulse === true ? '1' : '0');
         localStorage.setItem(
             STATE_CACHE_KEYS.artistStars,
             JSON.stringify(Array.isArray(s.artistStars) ? s.artistStars : []),
