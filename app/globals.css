@@ -15968,9 +15968,17 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     transition: color 0.3s;
 }
 .ps-note-rail.is-docked { visibility: hidden; }
-/* No soundtrack on this piece: the slot keeps its space (Share/Star never
-   shift) but shows nothing and takes no taps. */
+/* No soundtrack on this piece: the slot is empty (nothing shown, no taps) and
+   Share slides down into the middle spot (.is-low = one circle + one gap, 56px);
+   it slides back up when the note pops in on the next piece that has one. */
 .ps-note-rail.is-empty { visibility: hidden; pointer-events: none; }
+.ps-share-rail {
+    transition: background-color 0.3s, transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.ps-share-rail.is-low { transform: translateY(56px); }
+@media (prefers-reduced-motion: reduce) {
+    .ps-share-rail { transition: background-color 0.3s; }
+}
 /* Soundtrack present: the circle POPS in — the cue that this piece has one.
    Replays on every swipe (the element is keyed to the card). */
 @keyframes ps-note-pop {
@@ -15978,7 +15986,7 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     60%  { transform: scale(1.22); }
     100% { transform: scale(1); }
 }
-.ps-note-rail.is-pop { animation: ps-note-pop 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.4) 0.15s backwards; }
+.ps-note-rail.is-pop { animation: ps-note-pop 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.4) 0.2s backwards; }
 @media (prefers-reduced-motion: reduce) {
     .ps-note-rail.is-pop { animation: none; }
 }
