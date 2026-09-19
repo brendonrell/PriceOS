@@ -880,3 +880,34 @@ body.modal-open .fm-bar {
     background: var(--stat-active-bg, var(--text-color));
     color: var(--stat-active-text, var(--bg-color));
 }
+
+/* ═══ PRICESTREAM DOCK (Brendon, 2026-09-19) ═══
+   Inside the PriceStream feed the player is ALWAYS the round disc, docked in
+   the action rail's MIDDLE slot (share above, star below — 44px circles, 12px
+   gaps, rail bottom at 128px: star 128→172, disc 184→228). Keys, picker and
+   readout are hidden; the real video keeps playing inside the circle (hiding
+   the iframe kills audio), spinning while playing. Tap = pause/resume. The ring
+   wears the active card's colorway (--ps-dock-accent, set by PriceStreamFeed). */
+.fm-bar.fm-mode-disc.fm-in-stream {
+    left: auto;
+    right: max(14px, env(safe-area-inset-right, 0px));
+    --fm-tx: 0px;
+    transform: none;
+    bottom: calc(184px + env(safe-area-inset-bottom, 0px));
+    width: 44px;
+    height: 44px;
+    max-width: none;
+    gap: 0;
+}
+.fm-in-stream .fm-btn,
+.fm-in-stream .fm-picker,
+.fm-in-stream .fm-usbcap,
+.fm-in-stream .fm-sigbars { display: none; }
+.fm-bar.fm-mode-disc.fm-in-stream .fm-screen {
+    width: 44px;
+    height: 44px;
+    border: 3px solid var(--ps-dock-accent, #e0e0e0);
+    transition: border-color 0.3s;
+}
+.fm-bar.fm-mode-disc.fm-in-stream .fm-video { width: 38px; height: 38px; }
+.fm-bar.fm-mode-disc.fm-in-stream .fm-video iframe { width: 68px; height: 38px; margin-left: -15px; }
