@@ -31,6 +31,7 @@ interface FmDriver {
     playQueue(sts: ReadonlyArray<FmStation>): void;
     toggle(): void;
     next(): void;
+    close(): void;
 }
 
 let snap: FmSnapshot = { status: 'idle', station: null, trackTitle: '' };
@@ -82,4 +83,11 @@ export function fmToggle(): void {
 
 export function fmNext(): void {
     driver?.next();
+}
+
+/** Close the miniplayer entirely (audio dead, device gone) — the same teardown
+ *  as its × key. PriceStream uses it so a swipe to a new artwork hands back a
+ *  fresh ♫ circle (Brendon, 2026-09-19). No-op when nothing is on air. */
+export function fmClose(): void {
+    driver?.close();
 }
