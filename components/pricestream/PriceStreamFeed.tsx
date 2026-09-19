@@ -206,13 +206,22 @@ function ActionRail({ card }: { card: PriceStreamCard | null }) {
     // useUserIdentity so FollowButton (the real user→user follow) can target it.
     const artistHandle = card ? (getProject(card.slug)?.artistHandle ?? 'opus4-6') : null;
     const artistIdentity = useUserIdentity(artistHandle);
+    // FOLLOWED is a wider label than FOLLOW — when it shares the row with the
+    // offers button, "MAKE OFFER" is shortened to "OFFER" so it all fits.
+    const [followed, setFollowed] = useState(false);
 
     // Is the miniplayer live? Then the ♫︎ slot is occupied by the docked disc.
     const fm = useSyncExternalStore(subscribeFm, getFm, getFm);
     const fmLive = fm.station !== null;
 
     if (!card) return null;
-    const soundtrack = getProject(card.slug)?.soundtrack ?? null;
+    /* Soundtrack: the DB's (same source as the output page — the feed route
+       returns it), label from the registry when it has one; registry alone only
+       if the DB lookup failed (card.soundtrack undefined). */
+    const regSt = getProject(card.slug)?.soundtrack ?? null;
+    const soundtrack = card.soundtrack === undefined
+        ? regSt
+        : (card.soundtrack ? { playlistId: card.soundtrack, label: regSt?.label ?? 'Project Soundtrack' } : null);
     const inCart = items.some((i) => i.slug === card.slug && i.id === card.tokenId);
 
     /* Exact CTA the artwork modal shows a non-owner (components/artwork/
@@ -260,15 +269,21 @@ function ActionRail({ card }: { card: PriceStreamCard | null }) {
     return (
         <>
             <div className="ps-rail-stack">
-                <div className="ps-share-rail" title="Share" onClick={onShare}>
+                {/* No soundtrack (and no disc docked) → the ♫ slot is empty, so Share
+                    slides down into the middle spot; it slides back up when the note
+                    pops in on a piece that has one. */}
+                <div
+                    className={`ps-share-rail${!soundtrack && !fmLive ? ' is-low' : ''}`}
+                    title="Share"
+                    onClick={onShare}
+                >
                     <span className="ps-share-ico">{'\u2197\uFE0E'}</span>
                 </div>
                 {/* Soundtrack slot — sits between Share and Star. While the miniplayer is
                     live the FmBar disc docks exactly over it (styles/fm.css), so this
                     circle steps aside (visibility, not layout — the rail never shifts). */}
                 {/* Soundtrack pops in (key = the card, so it replays every swipe) as the
-                    visual cue that THIS piece has one; no soundtrack → the slot holds
-                    its space, empty, so Share/Star never shift. */}
+                    visual cue that THIS piece has one. */}
                 <div
                     key={`note:${card.slug}:${card.tokenId}`}
                     className={`ps-note-rail${soundtrack ? ' is-pop' : ' is-empty'}${fmLive ? ' is-docked' : ''}`}
@@ -297,7 +312,7 @@ function ActionRail({ card }: { card: PriceStreamCard | null }) {
                 </p>
                 <div className="ps-actions">
                     {artistIdentity.address && artistHandle && (
-                        <FollowButton targetAddress={artistIdentity.address} targetHandle={artistHandle} />
+                        <FollowButton targetAddress={artistIdentity.address} targetHandle={artistHandle} onState={setFollowed} />
                     )}
                     <button className="btn-mint" onClick={onCta} disabled={inCart && card.listed}>
                         {card.listed ? (
@@ -313,7 +328,7 @@ function ActionRail({ card }: { card: PriceStreamCard | null }) {
                                 )}
                             </>
                         ) : (
-                            <span className="mint-lbl">MAKE OFFER</span>
+                            <span className="mint-lbl">{card.offersCount > 0 && followed ? 'OFFER' : 'MAKE OFFER'}</span>
                         )}
                     </button>
                     {card.offersCount > 0 && (
