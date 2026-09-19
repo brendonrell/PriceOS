@@ -3,7 +3,7 @@ title: "The App — Identity & Profiles"
 description: "The identity layer: @names, PriceSprites, profile pages and their owner's color, Showcase modes, and the Collected / Starred / Wishlist / Albums system."
 category: "app"
 keywords: ["identity", "@name", "pricesprite", "profile", "showcase", "albums", "completionism", "friend inspector"]
-last_updated: "2026-08-05"
+last_updated: "2026-09-18"
 ---
 
 # The App — Identity & Profiles
@@ -69,6 +69,19 @@ PD's identity layer sits on top of your wallet: the address signs, the identity 
 Your handle across the platform — on the Tape, in Pings, on everything you touch. The @ is part of the noun. Underneath it your address (and ENS, where set) remains readable; the @name is how the community knows you.
 
 Long-press your @name on your own profile and the customization rows open: your **profile color**, your **tags**, and your **name font** — twenty-two Unicode styles (bold, script, fraktur, small caps, upside-down…) that restyle your displayed name for every viewer. The @ stays plain and the real handle underneath never changes.
+
+## Presets — Roll, Generative, Daily
+
+**How:** Long-press your @name on your own profile, then scroll the customization menu to the bottom row.
+
+The Presets row rolls a whole look at once — color, tag paint, logo, and name font together — instead of tuning each one by hand.
+
+- **Roll** sits first and fires whichever shape is picked. It stays greyed out until you pick a mode below it or turn on Generative.
+- **Match / Accent / Pair / Random** are the four roll shapes. Tap one to select it — a toast explains what it does the moment you pick it: **Match** locks color, tags, and logo to one shared hue; **Accent** keeps your color as the main and gives tags + logo a genuinely different pop color; **Pair** keeps color and tags on the same hue at two different shades; **Random** rolls all four independently. Roll as many times as you like with a mode selected — the picked mode is remembered, so closing and reopening the menu comes back where you left it.
+- **Daily**, right after the mode pills, is a *standing* toggle (shown in italics, like Generative): once on, it auto-picks one of your saved Presets every 24 hours. It needs at least one saved Preset to do anything.
+- **Undo**, right after Daily, steps back one look — the one thing Roll, Generative, Daily, or loading a Preset just replaced. A second tap flips back again. It's a single step, not a history, and it's stored on this device only.
+- **Generative**, last in the row (also italic), is the other standing toggle: once on, your look auto-rerolls every 24 hours, drawing from all four shapes above — genuinely different from Random, which is one shape rolled once.
+- The **22 numbered Preset slots** close out the row. Tap an empty slot to save your current look into it; tap a filled slot to load that look back. Presets save exactly what's set on your profile right now, independent of how you got there. Tap the **×** on a filled slot to remove it — this always asks you to confirm first, since a stray scroll-tap shouldn't be able to erase a saved look.
 
 ## Profile tags
 
