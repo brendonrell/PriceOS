@@ -4412,6 +4412,21 @@ body.pd-stone-open .ens-copy-toast {
    pure opacity — no pointer-events lock, so it still reads as "there" while
    greyed, just inert until a mode or Generative is picked. */
 .pill.pill-l3.preset-roll-pill { font-style: italic; }
+/* Generative + Daily are the two STANDING modes (24h auto-timers) as
+   opposed to the one-shot roll shapes (Match/Accent/Pair/Random) — italic
+   marks that distinction at a glance (Brendon, 2026-09-18). */
+.pill.pill-l3.profile-standing-pill { font-style: italic; }
+.pill.pill-l3.profile-undo-pill { opacity: 0.85; }
+.pill.pill-l3.profile-undo-pill:hover { opacity: 1; }
+/* Contrast stroke behind the preset slot's circled number — see inline
+   --ppg-stroke on .profile-preset-slot--filled. */
+.profile-preset-slot__num {
+    text-shadow:
+        -1px -1px 0 var(--ppg-stroke),
+        1px -1px 0 var(--ppg-stroke),
+        -1px 1px 0 var(--ppg-stroke),
+        1px 1px 0 var(--ppg-stroke);
+}
 .pill.pill-l3.preset-roll-pill--disabled {
     opacity: 0.4;
     cursor: default;
