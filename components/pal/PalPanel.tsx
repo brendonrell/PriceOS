@@ -558,25 +558,42 @@ export default function PalPanel({ inline = false }: { inline?: boolean } = {}) 
                                     <span className="cpl-tile-label">{`ƒ${VS15}`} NET</span>
                                     <span className="cpl-tile-value">{`${net >= 0 ? '+' : '−'}${formatEth(Math.abs(net))}`}</span>
                                 </div>
+                                {/* THE HOT READ — what's moving and what it means for you,
+                                    as two more squares in the same grid. */}
+                                {hot && (
+                                    <>
+                                        <div className="cpl-tile">
+                                            <span className="cpl-tile-label">HOT</span>
+                                            <span className="cpl-tile-value cpl-tile-text">{hot.title}</span>
+                                            <span className="cpl-tile-sub">
+                                                {hot.moves} {hot.moves === 1 ? 'MOVE' : 'MOVES'}
+                                                {hot.floor != null ? ` · FLOOR ${formatEth(hot.floor)}` : ' · NO FLOOR'}
+                                            </span>
+                                        </div>
+                                        <div className="cpl-tile">
+                                            {hot.held && hot.held.exitNet != null ? (
+                                                <>
+                                                    <span className="cpl-tile-label">EXIT NETS</span>
+                                                    <span className="cpl-tile-value">{formatEth(hot.held.exitNet)}</span>
+                                                    <span className="cpl-tile-sub">YOU HOLD {hot.held.count}</span>
+                                                </>
+                                            ) : hot.floor != null ? (
+                                                <>
+                                                    <span className="cpl-tile-label">GET IN</span>
+                                                    <span className="cpl-tile-value">{formatEth(hot.floor)}</span>
+                                                    <span className="cpl-tile-sub">FROM THE FLOOR</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="cpl-tile-label">GET IN</span>
+                                                    <span className="cpl-tile-value">NONE</span>
+                                                    <span className="cpl-tile-sub">NO LIVE LISTING</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
                             </div>
-
-                            {/* THE HOT READ — what's moving, and what it means for you. */}
-                            {hot && (
-                                <div className="cpl-close pal-hot">
-                                    <span className="cpl-close-head">HOT — {hot.title}</span>
-                                    <span className="cpl-close-line">
-                                        {hot.moves} market moves on the tape
-                                        {hot.floor != null ? ` · floor ${formatEth(hot.floor)} ETH` : ' · no live floor'}
-                                    </span>
-                                    <span className="cpl-close-line">
-                                        {hot.held && hot.held.exitNet != null
-                                            ? `you hold ${hot.held.count} — exit nets ${formatEth(hot.held.exitNet)} ETH`
-                                            : hot.floor != null
-                                                ? `get in from ${formatEth(hot.floor)} ETH`
-                                                : 'no live listing to get in on'}
-                                    </span>
-                                </div>
-                            )}
 
                             {portfolio.length === 0 ? (
                                 <div className="cart-empty-state">
@@ -629,7 +646,7 @@ export default function PalPanel({ inline = false }: { inline?: boolean } = {}) 
 
     return createPortal(
         <div className={wrapClass} onClick={(e) => { if (e.target === e.currentTarget) close(); }}>
-            <div className="cart-panel-box" onClick={(e) => e.stopPropagation()}>
+            <div className="cart-panel-box pal-box" onClick={(e) => e.stopPropagation()}>
                 <div className="cart-panel-header">
                     <span className="cart-panel-title">
                         {tab === 'purchase' ? 'PURCHASE PAL' : 'PROFIT PAL'}
