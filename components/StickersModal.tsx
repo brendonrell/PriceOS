@@ -30,10 +30,9 @@ import { StickerArt } from './stickers/StickerArt';
 import { BuySheetButton } from './stickers/BuySheetButton';
 import StickerMarket from './stickers/StickerMarket';
 import StickerAlbum from './stickers/StickerAlbum';
-import { useOwnedStickerIds, ownsSheet, peelSheet } from '../lib/stickers/owned';
+import { useOwnedStickerIds, ownsSheet } from '../lib/stickers/owned';
 import StickerLcd from './stickers/StickerLcd';
 import { buildStoreTicker, buildMarketTicker } from '../lib/stickers/ticker';
-import { resolveSpriteFace } from '../lib/hooks/useSpriteFace';
 
 const VS15 = '︎';
 
@@ -43,13 +42,10 @@ export default function StickersModal() {
     const { isOpen, isTopStacked } = useModalLayer('stickers');
 
     /* Toggle the view mode + toast it (house style: new state in CAPS). Fires
-       only on this switch, never on opening the store. Same expanded/compact
-       state now drives Market + Binder too (Brendon, 2026-08-30), so the
-       toast names whichever face is on screen. */
+       only on this switch, never on opening the store. */
     const toggleView = () => setExpanded((v) => {
         const next = !v;
-        const face = albumOn ? 'Sticker Binder' : marketOn ? 'Sticker Market' : 'Sticker Store';
-        showToast(`${face}: ${next ? 'STACKED' : 'COMPACT'}`);
+        showToast(`Sticker Store: ${next ? 'STACKED' : 'COMPACT'}`);
         return next;
     });
     const railRef = useDragScroll<HTMLDivElement>();
@@ -82,8 +78,12 @@ export default function StickersModal() {
     const commitPeel = useCallback((sheetId: string, name: string) => {
         setPeelGone(true);
         setTimeout(() => {
-            peelSheet(sheetId as SheetId);
-            setPeeled((prev) => new Set(prev).add(sheetId));
+            setPeeled((prev) => {
+                const next = new Set(prev);
+                next.add(sheetId);
+                try { window.localStorage.setItem('pd_sticker_peeled', JSON.stringify([...next])); } catch { /* ignore */ }
+                return next;
+            });
             setPeelGone(false);
             setPeelDrag(0);
         }, 420);
@@ -112,7 +112,6 @@ export default function StickersModal() {
         return () => mq.removeEventListener('change', sync);
     }, []);
 
-    
     /* Remember the carousel scroll position across opening a sheet / reopening
        the store, so it never snaps back to the start (Brendon 2026-06-21). */
     const railXRef = useRef(0);
@@ -138,14 +137,6 @@ export default function StickersModal() {
 
     // Reset to the rail whenever the modal closes so it never reopens mid-sheet.
     useEffect(() => { if (!isOpen) { setOpenSheet(null); setMarketOn(false); setAlbumOn(false); } }, [isOpen]);
-
-    /* Deep link straight to a sheet's SECONDARY book — e.g. open('stickers',
-       `market:${sheetId}`) from the sticker pile stats popover's SECONDARY
-       pill (Brendon, 2026-09-15). */
-    const marketDeepLinkSheet = typeof openModal?.payload === 'string' && openModal.payload.startsWith('market:')
-        ? (openModal.payload.slice('market:'.length) as SheetId)
-        : null;
-    useEffect(() => { if (isOpen && marketDeepLinkSheet) setMarketOn(true); }, [isOpen, marketDeepLinkSheet]);
 
     const openDetail = (id: SheetId) => { setSeed((Math.random() * 1e9) | 0); setOpenSheet(id); };
 
@@ -174,30 +165,11 @@ export default function StickersModal() {
             .catch(() => {});
         return () => { cancelled = true; };
     }, [isOpen]);
-    /* The reps' REAL faces (@brendon / @pricediscussion) — same live lookup
-       AsciiId uses, not the project-hash placeholder the crawl used to draw
-       on (Brendon, 2026-08-27). Fetched once per open, shared by both
-       crawls. A rep with no resolved face yet just renders name-only. */
-    const [repFaces, setRepFaces] = useState<Record<string, string>>({});
-    useEffect(() => {
-        if (!isOpen) return;
-        let cancelled = false;
-        Promise.all(
-            ['brendon', 'pricediscussion'].map((h) => resolveSpriteFace(h).then((f) => [h, f] as const)),
-        ).then((pairs) => {
-            if (cancelled) return;
-            const next: Record<string, string> = {};
-            pairs.forEach(([h, f]) => { if (f) next[h] = f; });
-            setRepFaces(next);
-        });
-        return () => { cancelled = true; };
-    }, [isOpen]);
-
     /* Two crawls, one per storefront face: the STORE onboards + sells sheets;
        the MARKET (live truth leads it) nudges listing to fund the next roll.
        Album rides the store crawl. */
-    const storeTicker = useMemo(() => buildStoreTicker(repFaces), [isOpen, repFaces]);
-    const marketTicker = useMemo(() => buildMarketTicker(liveLines, repFaces), [isOpen, liveLines, repFaces]);
+    const storeTicker = useMemo(() => buildStoreTicker(), [isOpen]);
+    const marketTicker = useMemo(() => buildMarketTicker(liveLines), [isOpen, liveLines]);
     const tickerText = marketOn ? marketTicker : storeTicker;
     /* Match the OLD crawl pace (~3.3 chars/sec): scale the timer to the feed
        length so the longer feed doesn't fly by. */
@@ -294,10 +266,7 @@ export default function StickersModal() {
             aria-label="Sticker Exchange"
             onClick={(e) => { if (e.target === e.currentTarget) close(); }}
         >
-            <div
-                className="sticker-sheet"
-                onClick={(e) => e.stopPropagation()}
-            >
+            <div className="sticker-sheet" onClick={(e) => e.stopPropagation()}>
                 <div
                     className="ss-handle"
                     role="button"
@@ -332,15 +301,17 @@ export default function StickersModal() {
                                 <span className="ss-title-main">{albumOn ? 'STICKER BINDER' : marketOn ? 'STICKER MARKET' : 'STICKER STORE'}</span>
                                 <span className="ss-title-sub">{`⊞${VS15} ${albumOn ? 'GOT / NEED' : marketOn ? 'SECONDARY' : 'BY PD'}`}</span>
                             </div>
+                            {!marketOn && !albumOn && (
                             <button
                                 className={`ss-expand${expanded ? ' is-on' : ''}`}
                                 type="button"
-                                title={expanded ? 'Compact' : 'Expand'}
+                                title={expanded ? 'Sticker Store: COMPACT' : 'Expand'}
                                 aria-pressed={expanded}
                                 onClick={toggleView}
                             >
                                 {`${expanded ? '↓' : '↑'}${VS15}`}
                             </button>
+                            )}
                             <div className="ss-stats">
                                 <span className="ss-stat"><b>{totalSheets}</b> SHEETS</span>
                                 <span className="ss-stat"><b>{ownedIds.length}</b> OWNED</span>
@@ -461,26 +432,15 @@ export default function StickersModal() {
                                     else { setAlbumOn(false); setMarketOn(true); showToast('Stickers: MARKETPLACE'); }
                                 }}
                             >
-                                {/* MARKET reads << while open, since tapping
-                                    it here crosses back to the store
-                                    (Brendon, 2026-08-18; glyph swapped for a
-                                    plain << and matched to the label's Rubik
-                                    12px, 2026-08-30). Closed, it's just
-                                    MARKET; short, so it never pushes MY BINDER
-                                    off the right edge of an iPhone.
-                                    Both states always render, one hidden, so
-                                    the cap's width is always the wider of the
-                                    two and never resizes on toggle (Brendon,
-                                    2026-08-22). */}
-                                <span className="ss-mktline-cap-stack">
-                                    <span className={`ss-mktline-cap-label${marketOn ? ' is-hidden' : ''}`}>
-                                        <span>MAR</span>
-                                        <span>KET</span>
-                                    </span>
-                                    <span className={`ss-mktline-cap-back${marketOn ? '' : ' is-hidden'}`} aria-hidden="true">
-                                        {'<<'}
-                                    </span>
-                                </span>
+                                {/* Always MARKET — short, and it never renames
+                                    itself out from under you (Brendon,
+                                    2026-07-24, the same call he made for MY
+                                    BINDER). Being open is said by the filled
+                                    `is-on` cap; tapping it again crosses back
+                                    to the store. The old MARKETPLACE / BACK TO
+                                    STORE labels were also what pushed MY BINDER
+                                    off the right edge of an iPhone. */}
+                                MARKET
                             </button>
                             <button
                                 type="button"
@@ -491,21 +451,11 @@ export default function StickersModal() {
                                     else { setMarketOn(false); setAlbumOn(true); showToast('Stickers: BINDER'); }
                                 }}
                             >
-                                {/* MY BINDER reads << while open, same rule
-                                    as MARKET (Brendon, 2026-08-18; glyph
-                                    swap 2026-08-30) — tapping it here is a
-                                    back action. Both states always render,
-                                    one hidden — see MARKET's note above
-                                    (Brendon, 2026-08-22). */}
-                                <span className="ss-mktline-cap-stack">
-                                    <span className={`ss-mktline-cap-label${albumOn ? ' is-hidden' : ''}`}>
-                                        <span>MY</span>
-                                        <span>BINDER</span>
-                                    </span>
-                                    <span className={`ss-mktline-cap-back${albumOn ? '' : ' is-hidden'}`} aria-hidden="true">
-                                        {'<<'}
-                                    </span>
-                                </span>
+                                {/* Always MY BINDER — the label never swaps to
+                                    MARKET (Brendon, 2026-07-24). Being open is
+                                    said by the filled `is-on` cap, not by the
+                                    button renaming itself out from under you. */}
+                                MY BINDER
                             </button>
                         </div>
                         <div className="ss-ticker" aria-hidden="true">
@@ -516,9 +466,9 @@ export default function StickersModal() {
                         </div>
 
                         {albumOn ? (
-                            <StickerAlbum compact={!expanded} />
+                            <StickerAlbum />
                         ) : marketOn ? (
-                            <StickerMarket compact={!expanded} initialSheet={marketDeepLinkSheet} />
+                            <StickerMarket />
                         ) : expanded ? (
                             /* The cap + scroll ride this plain-block wrapper, never the
                                grid itself — iOS Safari won't clip a grid that is its own
