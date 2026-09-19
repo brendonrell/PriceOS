@@ -326,6 +326,11 @@ export interface UserSettings {
    *  (Brendon, 2026-09-08: "randomly picks one of your saved every day").
    *  Mirror `pd_profile_daily_saved`. */
   profileDailySaved?: { enabled: boolean; lastRolledAt: number };
+  /** PROFILE PRESET MODE — which Presets-row mode pill (match/accent/pair/
+   *  random) was last selected, so the @name customization menu reopens
+   *  where the owner left it instead of resetting to nothing picked
+   *  (Brendon, 2026-09-18). Mirror `pd_profile_preset_mode`. */
+  profilePresetMode?: 'random' | 'match' | 'accent' | 'pair' | null;
   /** HOME SHUFFLE COLORWAY MODE — long-press the Shuffle tab to have each
    *  shuffled project's own colorway paint the whole page while you're on
    *  that tab (Brendon, 2026-09-02). ACCOUNT-ONLY: no localStorage mirror by
