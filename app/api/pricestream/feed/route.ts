@@ -13,6 +13,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
 import { HIDDEN_PROJECTS_NOT_IN } from '@/lib/platform/hiddenProjects';
+import { normalizePlaylistId } from '@/lib/project/soundtrack';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,6 +33,11 @@ export interface PriceStreamCard {
     listed: boolean;
     priceEth: number | null;
     offersCount: number;
+    /** The project's soundtrack as the DB has it (`projects.soundtrack`, bare
+     *  playlist id) — the SAME source the output page reads. null = the project
+     *  has none; undefined = the lookup failed (client falls back to the registry).
+     *  (Brendon, 2026-09-19: the note must work on every output that has one.) */
+    soundtrack?: string | null;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -165,6 +171,25 @@ export async function GET(req: Request) {
         }
     }
 
+    // Soundtracks — DB is the truth (the output page's ProjectContext reads the
+    // same column and treats a null there as "no soundtrack"), so the note only
+    // shows where the project page's SOUNDTRACK button would.
+    const soundtrackBySlug = new Map<string, string | null>();
+    let soundtrackOk = false;
+    if (picked.length) {
+        const projectIds = Array.from(new Set(picked.map((r) => String(r.project_id).toLowerCase())));
+        const { data: projRows, error: projErr } = await db
+            .from('projects')
+            .select('id, soundtrack')
+            .in('id', projectIds);
+        if (!projErr) {
+            soundtrackOk = true;
+            for (const p of (projRows ?? []) as { id: string; soundtrack: string | null }[]) {
+                soundtrackBySlug.set(String(p.id).toLowerCase(), normalizePlaylistId(p.soundtrack));
+            }
+        }
+    }
+
     const cards: PriceStreamCard[] = picked.map((r) => {
         const slug = String(r.project_id).toLowerCase();
         const tokenId = Number(r.token_id);
@@ -179,6 +204,7 @@ export async function GET(req: Request) {
             listed: priceEth != null,
             priceEth,
             offersCount: (offersCountByKey.get(key) ?? 0) + (collectionOfferCountByProject.get(slug) ?? 0),
+            soundtrack: soundtrackOk ? (soundtrackBySlug.get(slug) ?? null) : undefined,
         };
     });
 
