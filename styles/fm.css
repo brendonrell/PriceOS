@@ -911,3 +911,10 @@ body.modal-open .fm-bar {
 }
 .fm-bar.fm-mode-disc.fm-in-stream .fm-video { width: 38px; height: 38px; }
 .fm-bar.fm-mode-disc.fm-in-stream .fm-video iframe { width: 68px; height: 38px; margin-left: -15px; }
+/* ⛔ body.modal-open ducks EVERY .fm-bar (opacity 0 + no taps) and PriceStream IS
+   a modal — that's what made the docked disc invisible. The dock opts out. */
+body.modal-open .fm-bar.fm-mode-disc.fm-in-stream {
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+}
