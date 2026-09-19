@@ -102,7 +102,7 @@ import { useClearedMonths } from '../../lib/hooks/useClearedMonths';
 import { useShownTags } from '../../lib/hooks/useShownTags';
 import { useTagsOff } from '../../lib/hooks/useTagsOff';
 import { deriveTags } from '../../lib/tags/derive';
-import { PERSONA_TAGS, tagTextOn, TAG_PAINTS, isTeamStyleTag } from '../../lib/tags/catalog';
+import { PERSONA_TAGS, tagTextOn, tagPaintHex, TAG_PAINTS, isTeamStyleTag } from '../../lib/tags/catalog';
 import { NAME_FONTS, styleName } from '../../lib/profile/nameFont';
 import { rollPreset, rollGenerativePreset, type PresetMode } from '../../lib/profile/presetRoll';
 import {
@@ -124,6 +124,9 @@ import {
     stampProfileDailySavedRoll,
     DAILY_SAVED_REROLL_MS,
 } from '../../lib/profile/profileDailySaved';
+import { useProfilePresetMode } from '../../lib/profile/profilePresetMode';
+import { captureProfileUndo, swapProfileUndo, type ProfileLookSnapshot } from '../../lib/profile/profileUndo';
+import { isUserStateHydrated } from '../../lib/state/userState';
 import { getProject, allProjects, projectsByArtist, projectColorway, artistSignatureColor } from '../../lib/project/registry';
 import HomeProjectFacetBar from '../home/HomeProjectFacetBar';
 import GhostCard from '../project/GhostCard';
@@ -391,12 +394,26 @@ function ProfilePageBodyInner({
        stack. presetMode picks which roll shape the Roll pill produces; the
        roll itself just fans out to the four setters already in scope.
        Brendon, 2026-09-02: opens with NOTHING selected — Roll starts greyed
-       out until a mode (or Generative) is picked. */
-    const [presetMode, setPresetMode] = useState<PresetMode | null>(null);
+       out until a mode (or Generative) is picked. Brendon, 2026-09-18:
+       persisted (not local useState) so reopening the menu comes back on
+       whichever mode was last picked instead of resetting to nothing. */
+    const [presetMode, setPresetMode] = useProfilePresetMode();
     const generative = useProfileGenerative();
     const rollReady = presetMode !== null || generative.enabled;
+    /* Snapshot of the look AS IT STANDS RIGHT NOW — used both to capture the
+       one-step Undo buffer before a mutating action, and (tag paint resolved
+       to its actual hex, since it may be a named swatch id) to save a Preset
+       slot. Brendon, 2026-09-18: preset saves must reflect exactly what's
+       set, independent of however the look got there. */
+    const currentLookSnapshot = useCallback((): ProfileLookSnapshot => ({
+        hex: myProfileHex ?? PROFILE_HEX_DEFAULT,
+        tagPaint: tagPaintHex(ownerTagPaint) ?? myProfileHex ?? PROFILE_HEX_DEFAULT,
+        logoId: ownerLogo ?? null,
+        fontId: ownerNameFont ?? null,
+    }), [myProfileHex, ownerTagPaint, ownerLogo, ownerNameFont]);
     const rollProfilePreset = useCallback(() => {
         if (presetMode) {
+            captureProfileUndo(currentLookSnapshot());
             const result = rollPreset(presetMode);
             setMyProfileHex(result.hex);
             setMyTagPaint(result.tagPaint);
@@ -404,6 +421,7 @@ function ProfilePageBodyInner({
             if (result.fontId) setMyNameFont(result.fontId);
             showToast(`Preset: ${presetMode.toUpperCase()}`);
         } else if (generative.enabled) {
+            captureProfileUndo(currentLookSnapshot());
             const result = rollGenerativePreset();
             setMyProfileHex(result.hex);
             setMyTagPaint(result.tagPaint);
@@ -412,11 +430,12 @@ function ProfilePageBodyInner({
             stampProfileGenerativeRoll();
             showToast('Generates new profile design every 24hrs');
         }
-    }, [presetMode, generative.enabled, setMyProfileHex, setMyTagPaint, setMyProfileLogo, setMyNameFont, showToast]);
+    }, [presetMode, generative.enabled, currentLookSnapshot, setMyProfileHex, setMyTagPaint, setMyProfileLogo, setMyNameFont, showToast]);
     const toggleGenerative = useCallback(() => {
         const next = !generative.enabled;
         setProfileGenerativeEnabled(next);
         if (next) {
+            captureProfileUndo(currentLookSnapshot());
             const result = rollGenerativePreset();
             setMyProfileHex(result.hex);
             setMyTagPaint(result.tagPaint);
@@ -426,12 +445,25 @@ function ProfilePageBodyInner({
         } else {
             showToast('Generative: OFF');
         }
-    }, [generative.enabled, setMyProfileHex, setMyTagPaint, setMyProfileLogo, setMyNameFont, showToast]);
+    }, [generative.enabled, currentLookSnapshot, setMyProfileHex, setMyTagPaint, setMyProfileLogo, setMyNameFont, showToast]);
     /* 24h auto-reroll while Generative is on — checked on mount and hourly;
        cheap enough (a Date.now() diff) that hourly polling is plenty granular
-       against a 24h window (Brendon, 2026-09-02). */
+       against a 24h window (Brendon, 2026-09-02).
+       Brendon, 2026-09-18 FIX: gated on isUserStateHydrated() — without this,
+       `generative` starts from whatever's in the LOCAL localStorage cache
+       (which can be a stale "enabled: true" left over from before the toggle
+       was last turned off elsewhere), and this effect fired a real reroll —
+       mutating hex/tagPaint/logo/font — off that stale value before the
+       account's actual settings had finished loading. The reroll had already
+       happened by the time hydration corrected `generative.enabled` back to
+       false, which is exactly the "it's OFF but my profile rearranges itself
+       when I return" leak. Waiting for hydration closes the race: this
+       effect's dependency on generative.enabled means it re-fires the moment
+       the real value lands (useProfileGenerative listens for the hydration
+       event), so nothing is lost — it just can't jump the gun. */
     useEffect(() => {
         if (!isOwnProfile || !generative.enabled) return;
+        if (!isUserStateHydrated()) return;
         const check = () => {
             if (Date.now() - generative.lastRolledAt < GENERATIVE_REROLL_MS) return;
             const result = rollGenerativePreset();
@@ -475,17 +507,20 @@ function ProfilePageBodyInner({
             if (filledPresetSlots.length === 0) {
                 showToast('Daily: SAVE A PRESET FIRST');
             } else {
+                captureProfileUndo(currentLookSnapshot());
                 rollDailySaved();
                 showToast('Daily: picks a saved preset every 24hrs');
             }
         } else {
             showToast('Daily: OFF');
         }
-    }, [dailySaved.enabled, filledPresetSlots.length, rollDailySaved, showToast]);
+    }, [dailySaved.enabled, filledPresetSlots.length, currentLookSnapshot, rollDailySaved, showToast]);
     /* 24h auto-pick while Daily is on — checked on mount and hourly, same
-       pattern as Generative's auto-reroll effect just below. */
+       pattern as Generative's auto-reroll effect just above, and gated on
+       isUserStateHydrated() for the same race-condition reason. */
     useEffect(() => {
         if (!isOwnProfile || !dailySaved.enabled) return;
+        if (!isUserStateHydrated()) return;
         const check = () => {
             if (Date.now() - dailySaved.lastRolledAt < DAILY_SAVED_REROLL_MS) return;
             rollDailySaved();
@@ -497,25 +532,71 @@ function ProfilePageBodyInner({
     const tapProfilePresetSlot = useCallback((index: number) => {
         const slot = profilePresetSlots[index];
         if (slot) {
+            captureProfileUndo(currentLookSnapshot());
             setMyProfileHex(slot.hex);
             setMyTagPaint(slot.tagPaint);
             setMyProfileLogo(slot.logoId);
             setMyNameFont(slot.fontId);
             showToast(`Preset ${index + 1}: LOADED`);
         } else {
-            saveProfilePreset(index, {
-                hex: myProfileHex ?? PROFILE_HEX_DEFAULT,
-                tagPaint: ownerTagPaint ?? myProfileHex ?? PROFILE_HEX_DEFAULT,
-                logoId: ownerLogo ?? null,
-                fontId: ownerNameFont ?? null,
-            });
+            /* Brendon, 2026-09-18 FIX: tag paint is resolved through
+               tagPaintHex() before saving. It used to save `ownerTagPaint`
+               as-is, which is fine when it's already a custom hex (e.g.
+               straight off a roll) but is a named swatch id (e.g. "black")
+               when set from the fixed Tag Paint swatches — saveProfilePreset
+               validates both fields as hex and silently no-ops on anything
+               that isn't, so "roll, then hand-tweak Tag Paint to a swatch,
+               then save" looked like it saved (toast still fired) but wrote
+               nothing. Presets now always save exactly what's set,
+               independent of how it got set. */
+            saveProfilePreset(index, currentLookSnapshot());
             showToast(`Preset ${index + 1}: SAVED`);
         }
-    }, [profilePresetSlots, myProfileHex, ownerTagPaint, ownerLogo, ownerNameFont, setMyProfileHex, setMyTagPaint, setMyProfileLogo, setMyNameFont, showToast]);
+    }, [profilePresetSlots, currentLookSnapshot, setMyProfileHex, setMyTagPaint, setMyProfileLogo, setMyNameFont, showToast]);
+    const undoProfileLook = useCallback(() => {
+        const restored = swapProfileUndo(currentLookSnapshot());
+        if (!restored) {
+            showToast('Undo: NOTHING TO UNDO');
+            return;
+        }
+        setMyProfileHex(restored.hex);
+        setMyTagPaint(restored.tagPaint);
+        setMyProfileLogo(restored.logoId);
+        setMyNameFont(restored.fontId);
+        showToast('Undo: RESTORED');
+    }, [currentLookSnapshot, setMyProfileHex, setMyTagPaint, setMyProfileLogo, setMyNameFont, showToast]);
     const deleteProfilePresetSlot = useCallback((index: number) => {
         deleteProfilePreset(index);
         showToast(`Preset ${index + 1}: DELETED`);
     }, [showToast]);
+    /* Confirm-before-delete on the preset slot × (Brendon, 2026-09-18:
+       "Always always confirm modal for destructive actions... Users will
+       mistap as they simply scroll and delete their favourite setting").
+       Index of the slot currently showing its inline confirm card, or null. */
+    const [confirmDeleteSlot, setConfirmDeleteSlot] = useState<number | null>(null);
+    const requestDeleteProfilePresetSlot = useCallback((index: number) => {
+        setConfirmDeleteSlot(index);
+    }, []);
+    const confirmDeleteProfilePresetSlot = useCallback(() => {
+        if (confirmDeleteSlot === null) return;
+        deleteProfilePresetSlot(confirmDeleteSlot);
+        setConfirmDeleteSlot(null);
+    }, [confirmDeleteSlot, deleteProfilePresetSlot]);
+    /* Brief explanation shown in a toast the moment a Presets-row mode is
+       picked, so people know what they're signing up for before they roll
+       (Brendon, 2026-09-18). Wording mirrors the exact roll logic in
+       lib/profile/presetRoll.ts so it never drifts out of sync with what the
+       mode actually does. */
+    const PRESET_MODE_EXPLAIN: Record<PresetMode, string> = {
+        random: 'Random: colourway, tags & logo all roll independently',
+        match: 'Match: colourway, tags & logo lock to one colour',
+        accent: 'Accent: tags & logo pop in a different colour',
+        pair: 'Pair: colourway & tags, one hue, two shades',
+    };
+    const pickPresetMode = useCallback((m: PresetMode) => {
+        setPresetMode(m);
+        showToast(PRESET_MODE_EXPLAIN[m]);
+    }, [setPresetMode, showToast]);
     /* Tags the owner switched OFF — hidden from the shown row (every viewer),
        but still listed in the owner's picker to tap back on (Brendon,
        2026-07-22). */
@@ -1852,42 +1933,21 @@ function ProfilePageBodyInner({
                             >
                                 <span className="stat-name">{'⟳ Roll'}</span>
                             </div>
-                            {/* Generative leads, Random trails — these looked
-                                like near-duplicates (Brendon, 2026-09-08: "I
-                                can't tell the difference between random and
-                                generative"), but they're genuinely different:
-                                Random is one Roll shape (all four rolled
-                                independently, no coordination); Generative is
-                                the standing 24h-reroll toggle that draws from
-                                ALL FOUR shapes each time (see GENERATIVE_POOL,
-                                lib/profile/presetRoll.ts) — confirmed distinct,
-                                so per Brendon's fallback instruction they're
-                                reordered rather than merged/renamed. */}
-                            <div
-                                className={`pill pill-l3${generative.enabled ? ' active' : ''}`}
-                                role="button"
-                                tabIndex={0}
-                                onClick={toggleGenerative}
-                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGenerative(); } }}
-                                title="Generates new profile design every 24hrs"
-                            >
-                                <span className="stat-name">Generative</span>
-                            </div>
                             {(['match', 'accent', 'pair', 'random'] as const).map((m) => (
                                 <div
                                     key={m}
                                     className={`pill pill-l3${presetMode === m ? ' active' : ''}`}
                                     role="button"
                                     tabIndex={0}
-                                    onClick={() => setPresetMode(m)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPresetMode(m); } }}
-                                    title={PRESET_MODE_LABEL[m]}
+                                    onClick={() => pickPresetMode(m)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickPresetMode(m); } }}
+                                    title={PRESET_MODE_EXPLAIN[m]}
                                 >
                                     <span className="stat-name">{PRESET_MODE_LABEL[m]}</span>
                                 </div>
                             ))}
                             <div
-                                className={`pill pill-l3${dailySaved.enabled ? ' active' : ''}`}
+                                className={`pill pill-l3 profile-standing-pill${dailySaved.enabled ? ' active' : ''}`}
                                 role="button"
                                 tabIndex={0}
                                 onClick={toggleDailySaved}
@@ -1896,10 +1956,60 @@ function ProfilePageBodyInner({
                             >
                                 <span className="stat-name">Daily</span>
                             </div>
+                            {/* Undo — one step back only, device-local
+                                (Brendon, 2026-09-18: "I've had a tragedy and
+                                lost an amazing roll"). Sits right after Daily
+                                per Brendon's placement; swaps with whatever
+                                look it restores so a second tap flips back. */}
+                            <div
+                                className="pill pill-l3 profile-undo-pill"
+                                role="button"
+                                tabIndex={0}
+                                onClick={undoProfileLook}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); undoProfileLook(); } }}
+                                title="Undo the last roll / pick (one step)"
+                            >
+                                <span className="stat-name">{'↺ Undo'}</span>
+                            </div>
+                            {/* Generative trails the row (Brendon, 2026-09-18:
+                                moved back to last) — Random is one Roll shape
+                                (all four rolled independently, no
+                                coordination); Generative is the standing 24h-
+                                reroll toggle that draws from ALL FOUR shapes
+                                each time (see GENERATIVE_POOL,
+                                lib/profile/presetRoll.ts) — confirmed
+                                distinct per Brendon, 2026-09-08. */}
+                            <div
+                                className={`pill pill-l3 profile-standing-pill${generative.enabled ? ' active' : ''}`}
+                                role="button"
+                                tabIndex={0}
+                                onClick={toggleGenerative}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGenerative(); } }}
+                                title="Generates new profile design every 24hrs"
+                            >
+                                <span className="stat-name">Generative</span>
+                            </div>
                             {Array.from({ length: MAX_PROFILE_PRESETS }).map((_, i) => {
                                 const slot = profilePresetSlots[i];
                                 const style = slot
-                                    ? ({ background: slot.hex, color: slot.tagPaint, borderColor: slot.hex } as const)
+                                    ? ({
+                                        background: slot.hex,
+                                        color: slot.tagPaint,
+                                        borderColor: slot.hex,
+                                        /* Subtle contrast stroke behind the
+                                           circled number so it stays legible
+                                           even on a Match preset, where text
+                                           colour (tag paint) and background
+                                           (hex) are the same colour — tried
+                                           per Brendon, 2026-09-18, instead of
+                                           just hiding the number. Faint by
+                                           design: on non-Match presets where
+                                           the two colours already differ,
+                                           this is barely there. */
+                                        ['--ppg-stroke' as string]: tagTextOn(slot.hex) === '#ffffff'
+                                            ? 'rgba(255,255,255,0.45)'
+                                            : 'rgba(17,17,17,0.45)',
+                                    } as const)
                                     : undefined;
                                 return (
                                     <div
@@ -1912,24 +2022,45 @@ function ProfilePageBodyInner({
                                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tapProfilePresetSlot(i); } }}
                                         title={slot ? `Load Preset ${i + 1}` : `Save current look to Preset ${i + 1}`}
                                     >
-                                        <span className="stat-name">{PROFILE_PRESET_GLYPHS[i]}</span>
+                                        <span className={`stat-name${slot ? ' profile-preset-slot__num' : ''}`}>{PROFILE_PRESET_GLYPHS[i]}</span>
                                         {slot && (
                                             <span
                                                 className="profile-preset-slot__delete"
                                                 role="button"
                                                 tabIndex={0}
                                                 aria-label={`Delete Preset ${i + 1}`}
-                                                onClick={(e) => { e.stopPropagation(); deleteProfilePresetSlot(i); }}
+                                                onClick={(e) => { e.stopPropagation(); requestDeleteProfilePresetSlot(i); }}
                                                 onKeyDown={(e) => {
                                                     if (e.key === 'Enter' || e.key === ' ') {
                                                         e.preventDefault();
                                                         e.stopPropagation();
-                                                        deleteProfilePresetSlot(i);
+                                                        requestDeleteProfilePresetSlot(i);
                                                     }
                                                 }}
                                             >
                                                 {'×'}
                                             </span>
+                                        )}
+                                        {confirmDeleteSlot === i && (
+                                            <div className="ms-confirm-card" onClick={(e) => e.stopPropagation()}>
+                                                <div className="ms-confirm-question">Delete Preset {i + 1}?</div>
+                                                <div className="ms-confirm-btns">
+                                                    <button
+                                                        type="button"
+                                                        className="ms-confirm-btn ms-confirm-btn--cancel"
+                                                        onPointerDown={(e) => { e.stopPropagation(); setConfirmDeleteSlot(null); }}
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="ms-confirm-btn ms-confirm-btn--ok"
+                                                        onPointerDown={(e) => { e.stopPropagation(); confirmDeleteProfilePresetSlot(); }}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
                                         )}
                                     </div>
                                 );
