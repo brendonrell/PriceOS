@@ -33,6 +33,12 @@
  * person who made it), and useCart().add — gated on the real `listed` flag
  * from the `listings` table, exactly like ArtworkCard's hi-cart.
  *
+ * Rail order, top to bottom (Brendon, 2026-09-19): Share ↗︎, Soundtrack ♫︎,
+ * Starred ★︎. The ♫︎ is the SAME glyph + fmPlay() as the output page's
+ * soundtrack button; tapping it starts the project's soundtrack and the circle
+ * becomes the miniplayer's spinning DISC (FmBar, body.pd-ps-open → face forced
+ * to disc, docked in this slot; tap the disc = pause/resume). A toast says so.
+ *
  * Layout: edge-to-edge, actual TikTok style — no frame border, no padding,
  * no rounded corners (Brendon, 2026-09-14: the colorway-border frame
  * "isn't working," reverted).
@@ -60,7 +66,7 @@
  * other component styles through global classes — fixed, no exceptions).
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useCart } from '../../lib/state/CartContext';
@@ -71,6 +77,7 @@ import { ART_IMAGE_BASE, artImageUrl, artThumbUrl, getProject, projectColorway }
 import { isStarred, toggleStar, subscribeStarred } from '../../lib/pins/starStore';
 import { useUserIdentity } from '../../lib/hooks/useUserRank';
 import { shareLink } from '../../lib/pwa/share';
+import { fmPlay, getFm, subscribeFm } from '../../lib/fm/fmBus';
 import AsciiId from '../hero/AsciiId';
 import FollowButton from '../profile/FollowButton';
 import type { PriceStreamCard } from '../../app/api/pricestream/feed/route';
@@ -197,7 +204,12 @@ function ActionRail({ card }: { card: PriceStreamCard | null }) {
     const artistHandle = card ? (getProject(card.slug)?.artistHandle ?? 'opus4-6') : null;
     const artistIdentity = useUserIdentity(artistHandle);
 
+    // Is the miniplayer live? Then the ♫︎ slot is occupied by the docked disc.
+    const fm = useSyncExternalStore(subscribeFm, getFm, getFm);
+    const fmLive = fm.station !== null;
+
     if (!card) return null;
+    const soundtrack = getProject(card.slug)?.soundtrack ?? null;
     const inCart = items.some((i) => i.slug === card.slug && i.id === card.tokenId);
 
     /* Exact CTA the artwork modal shows a non-owner (components/artwork/
@@ -229,6 +241,12 @@ function ActionRail({ card }: { card: PriceStreamCard | null }) {
         else if (r === 'unavailable') showToast('Share: UNAVAILABLE');
     };
 
+    const onNote = () => {
+        if (!soundtrack) { showToast('No soundtrack for this project', 3200); return; }
+        fmPlay({ playlistId: soundtrack.playlistId, label: soundtrack.label, slug: card.slug });
+        showToast('miniplayer: ON AIR \u00b7 the note is now a disc \u00b7 tap it to pause', 3800);
+    };
+
     const onStar = () => {
         const r = toggleStar(card.slug, card.tokenId);
         setFloatDown(r !== 'starred');
@@ -241,6 +259,16 @@ function ActionRail({ card }: { card: PriceStreamCard | null }) {
             <div className="ps-rail-stack">
                 <div className="ps-share-rail" title="Share" onClick={onShare}>
                     <span className="ps-share-ico">{'\u2197\uFE0E'}</span>
+                </div>
+                {/* Soundtrack slot — sits between Share and Star. While the miniplayer is
+                    live the FmBar disc docks exactly over it (styles/fm.css), so this
+                    circle steps aside (visibility, not layout — the rail never shifts). */}
+                <div
+                    className={`ps-note-rail${fmLive ? ' is-docked' : ''}`}
+                    title={soundtrack ? `Soundtrack \u2014 ${soundtrack.label}` : 'Soundtrack'}
+                    onClick={onNote}
+                >
+                    <span className="ps-note-ico">{'\u266B\uFE0E'}</span>
                 </div>
                 <div className="ps-star-rail" title="Starred" onClick={onStar}>
                     <span className={`ps-star-ico${starred ? ' is-filled' : ''}`}>{starred ? '\u2605\uFE0E' : '\u2606\uFE0E'}</span>
@@ -389,6 +417,25 @@ export default function PriceStreamFeed() {
         const url = artImageUrl(next.slug, next.tokenId);
         if (url) { const img = new Image(); img.src = url; }
     }, [activeCard, cards]);
+
+    // Tell the miniplayer it's inside the feed (it docks as a disc in the rail)
+    // and hand it the active card's colorway for the disc's ring. If a session
+    // is already live when the feed opens, say where the player went.
+    useEffect(() => {
+        if (!isOpen) return;
+        document.body.classList.add('pd-ps-open');
+        window.dispatchEvent(new Event('pd:ps-open-changed'));
+        if (getFm().station) showToast('miniplayer: docked as the disc \u00b7 tap it to pause', 3800);
+        return () => {
+            document.body.classList.remove('pd-ps-open');
+            document.body.style.removeProperty('--ps-dock-accent');
+            window.dispatchEvent(new Event('pd:ps-open-changed'));
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen]);
+    useEffect(() => {
+        if (isOpen) document.body.style.setProperty('--ps-dock-accent', accentColor);
+    }, [isOpen, accentColor]);
 
     if (!isOpen) return null;
 
