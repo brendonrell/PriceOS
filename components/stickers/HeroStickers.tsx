@@ -208,8 +208,30 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
     // The preview (Manager Plus) is fed the owner's saved composition up front so
     // it paints LOCKED from the first frame — no generative-fallback flash, no
     // height jump that shoves the panel content down (Brendon 2026-06-24).
-    const layoutMap = preview ? (savedLayout ?? {}) : (editingLive ? ownPlace.placements : (savedLayout ?? {}));
-    const aspect = preview ? (savedAspect ?? null) : (editingLive ? ownPlace.aspect : (savedAspect ?? null));
+    /* editingLive swaps the composition's SOURCE from the account-synced
+       snapshot to local storage (usePlacements/ownPlace) — the whole point
+       being an instant-paint surface for drags while actively editing. But
+       the very tap that flips editingLive true (setMgrOpen(true) below) can
+       land before local storage has ever mirrored this device's saved
+       composition — a device that has never dragged a sticker locally has an
+       EMPTY ownPlace.placements even though the account has a locked layout.
+       That's the "hides, then shows" flash Brendon hit (2026-09-15): the
+       pile drops to zero items on the swap, then reappears once something
+       else (e.g. the manager's own seeding) populates local storage. Falling
+       back to the saved snapshot whenever local storage is still empty keeps
+       the pile showing the same picture straight through the transition —
+       local storage still wins the instant it actually has anything (a real
+       drag in progress). */
+    const layoutMap = preview
+        ? (savedLayout ?? {})
+        : (editingLive
+            ? (Object.keys(ownPlace.placements).length > 0 ? ownPlace.placements : (savedLayout ?? {}))
+            : (savedLayout ?? {}));
+    const aspect = preview
+        ? (savedAspect ?? null)
+        : (editingLive
+            ? (Object.keys(ownPlace.placements).length > 0 ? ownPlace.aspect : (savedAspect ?? null))
+            : (savedAspect ?? null));
     const locked = Object.keys(layoutMap).length > 0;
 
     /* Locked composition, resolved + layered (z asc, last-touched on top). */
