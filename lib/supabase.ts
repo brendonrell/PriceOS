@@ -84,6 +84,10 @@ export interface UserSettings {
   /** History recording paused by the user (the "Recording" L3 toggle). When
    *  true, no visits are recorded until resumed. PRIVATE. */
   breadcrumbsPaused?: boolean;
+  /** Market Pulse Colorway — marketplace-only bg pulse toggle (the title's
+   *  single-tap Easter egg). Was localStorage `pd_market_pulse`. Default OFF;
+   *  true = pulsing, persists across sessions/devices like any other pick. */
+  marketPulse?: boolean;
   /** To-Dos — the user's private task list (raw + output-bound). Same envelope +
    *  privacy as `starred`; account-backed so it follows the viewer across
    *  devices. Read + written by lib/todos/todoStore. */
