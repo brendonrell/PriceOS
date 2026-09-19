@@ -26,11 +26,10 @@
 import { Component, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useOwnedFor, useStickerPrefs, isActive } from '../../lib/stickers/owned';
-import { useHeroPrefs, resolveLook, arrangeShape, tiltDeg, rngFrom, buildCollage, buildPile, buildSlapped, buildFlow, stickerHue, shouldFlip } from '../../lib/stickers/heroPrefs';
+import { useHeroPrefs, arrangeShape, tiltDeg, rngFrom, buildCollage, buildPile, buildSlapped, stickerHue, shouldFlip } from '../../lib/stickers/heroPrefs';
 import { usePlacements, setComposition, moveSticker, raiseSticker, rotateSticker, removeFromComposition, type PlacementMap } from '../../lib/stickers/placements';
 import { StickerArt } from './StickerArt';
 import { StickerManagerModal } from './StickerManagerModal';
-import { StickerSpreadModal } from './StickerSpreadModal';
 import { stickerById, type Sticker } from '../../lib/stickers/catalog';
 
 interface Props {
@@ -41,22 +40,6 @@ interface Props {
      *  drives it instead. */
     savedLayout?: PlacementMap | null;
     savedAspect?: number | null;
-    /** Owner's account-synced sticker_state — VISITOR path only (own profile
-     *  keeps reading the live device ledger for immediate editing feedback).
-     *  Without these a visitor only ever saw the hardcoded demo seed, never
-     *  the owner's real collection (Brendon, 2026-08-21). */
-    savedOwnedIds?: string[] | null;
-    savedOffSheets?: string[] | null;
-    savedOffIds?: string[] | null;
-    /** Owner's account-synced look (arrange/tilt/rows/align/flip/density/border/
-     *  seed) — VISITOR path, same reasoning as savedOwnedIds above: without
-     *  this a visitor's own local/default look rendered instead of the
-     *  owner's actual saved arrangement (Brendon, 2026-09-09). */
-    savedLook?: Record<string, string> | null;
-    /** Owner's public "hide stickers" flag (settings.notifs.sticker, lifted
-     *  server-side) — VISITOR path. The owner's own toggle (notifs.sticker on
-     *  their own session) still governs their own view. */
-    ownerHidden?: boolean;
     /** Read-only mirror — renders the owner's live arrangement with NO gestures
      *  (no lift/drag/✕, no manager). Used as the live preview inside Manager Plus. */
     preview?: boolean;
@@ -68,32 +51,16 @@ const MAX_HERO_OUTPUTS = 4;
 
 /* Boundary so a single bad sticker can never take down the whole profile — the
    feature just renders nothing instead of crashing the page. */
-class StickerBoundary extends Component<{ children: ReactNode; label?: string }, { failed: boolean; msg?: string }> {
-    constructor(props: { children: ReactNode; label?: string }) { super(props); this.state = { failed: false }; }
-    static getDerivedStateFromError(error: unknown) { return { failed: true, msg: error instanceof Error ? error.message : String(error) }; }
-    /* Was a silent swallow ("stickers are decorative") — which is exactly why
-       the pile-hides-on-tap bug (Brendon, 2026-09-15) took this long to pin
-       down: whatever throws during a re-render just vanishes with zero trace.
-
-       Splitting the manager into its own boundary (previous pass) did NOT
-       stop the pile from hiding — which rules out the manager's own render
-       and points at the canvas/body render itself, shared code that isn't
-       gated by mgrOpen. Logging alone isn't enough on mobile (no console) —
-       surfacing the message ON SCREEN is, so it shows up wherever this broke. */
-    componentDidCatch(error: unknown) { console.error(`[HeroStickers${this.props.label ? `:${this.props.label}` : ''}] render crashed:`, error); }
-    render() {
-        if (!this.state.failed) return this.props.children;
-        return (
-            <div style={{ fontSize: 11, opacity: 0.7, padding: '6px 2px' }}>
-                Stickers hit a snag{this.props.label ? ` (${this.props.label})` : ''}{this.state.msg ? `: ${this.state.msg}` : ''}.
-            </div>
-        );
-    }
+class StickerBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+    constructor(props: { children: ReactNode }) { super(props); this.state = { failed: false }; }
+    static getDerivedStateFromError() { return { failed: true }; }
+    componentDidCatch() { /* swallow — stickers are decorative */ }
+    render() { return this.state.failed ? null : this.props.children; }
 }
 
 export function HeroStickers(props: Props) {
     return (
-        <StickerBoundary label="pile">
+        <StickerBoundary>
             <HeroStickersInner {...props} />
         </StickerBoundary>
     );
@@ -112,58 +79,21 @@ function snapAngle(deg: number): number {
     return Math.abs(deg - nearest) <= 5 ? nearest : Math.round(deg);
 }
 
-function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, savedOwnedIds, savedOffSheets, savedOffIds, savedLook, ownerHidden, preview }: Props) {
+function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, preview }: Props) {
     const { notifs } = usePdNotifs();
-    /* The manager modal, and the currently lifted sticker (floating + ✕,
-       own profile only) — a direct long-press-drag on the hero lifts a
-       sticker WITHOUT ever opening the modal, so both count as an active
-       local edit session. */
-    const [mgrOpen, setMgrOpen] = useState(false);
-    const [lifted, setLifted] = useState<string | null>(null);
-    /* Visitor tap on someone else's pile → the read-only stats + buy popover
-       (Brendon, 2026-09-15). Own-profile taps keep opening the manager above. */
-    const [spreadOpen, setSpreadOpen] = useState(false);
-    /* Whether THIS page load has an active local edit session — the only
-       moment stickers have any local reliance at all (Brendon, 2026-08-22:
-       "stickers should have NO local reliance... we want no localStorage-
-       only features"). Everywhere else — the resting display, any device,
-       any context, own profile or not — reads straight off the
-       account-synced props below. Local storage exists only so a drag or a
-       toggle paints instantly while you're actively using it; the moment
-       you're not actively editing, it plays no part in what renders.
-       `preview` counts too (Brendon, 2026-08-30: "sticker manager preview is
-       broken") — the Manager Plus preview is a NESTED instance of this same
-       component with its own fresh mgrOpen/lifted state, so it never actually
-       satisfied this check on its own. Its `owned` fell back to
-       savedOwnedIds, which the preview is never even passed (only
-       savedLayout/savedAspect are, for the LOCKED picture) — so the
-       generative preview always rendered zero stickers. Preview only ever
-       mounts while Plus is genuinely open, so it's always a live session. */
-    const editingLive = !!isOwn && (preview || mgrOpen || lifted !== null);
-    const owned = useOwnedFor(ownerHandle, editingLive, savedOwnedIds);
-    const livePrefs = useStickerPrefs();
-    const offSheets = editingLive ? livePrefs.offSheets : new Set(savedOffSheets ?? []);
-    const offIds = editingLive ? livePrefs.offIds : new Set(savedOffIds ?? []);
-    /* THE PEEL gate (Brendon, 2026-09-13): sealed sheets can't feed the
-       profile. Peeled state has no account sync yet, so it only applies
-       during a live local edit session — the resting/visitor display keeps
-       reading the account snapshot as-is, same as offSheets/offIds above. */
-    const peeledSheets = editingLive ? livePrefs.peeledSheets : new Set(owned.map((s) => s.sheet));
-    /* The look: local live state while actively editing, the account-synced
-       blob otherwise — for a visitor AND for the owner's own resting (not
-       currently editing) view alike, so the picture shown always matches
-       what's actually saved (Brendon, 2026-09-09). */
-    const localLook = useHeroPrefs();
-    const resolvedLook = useMemo(() => resolveLook(savedLook), [savedLook]);
-    const { arrange, tilt, seed, expand, rows: rowsPref, align, flip, density, border } = editingLive ? localLook : resolvedLook;
+    const owned = useOwnedFor(ownerHandle, !!isOwn);
+    const { offSheets, offIds } = useStickerPrefs();
+    const { arrange, tilt, seed, expand, rows: rowsPref, align, flip, density, border } = useHeroPrefs();
     /* Die-cut border (the kiss-cut white edge) — Off / White / Bold. White =
        white kiss-cut; Bold = white cut + a bold dark score line. Driven by CSS
        vars on the wrapper so the existing StickerArt die-cut is reused as-is. */
     const diecut = border !== 'off';
     const borderClass = border === 'off' ? '' : border === 'bold' ? ' bd-bold' : ' bd-white';
     const ownPlace = usePlacements();
+    const [mgrOpen, setMgrOpen] = useState(false);
     const [clampW, setClampW] = useState<number | null>(null);
-
+    /* The currently lifted sticker (floating + ✕), own profile only. */
+    const [lifted, setLifted] = useState<string | null>(null);
 
     // Track the tab row's width so the stickers stop at the +More edge. Skipped
     // in preview (Manager Plus): the post-mount measurement would re-lay-out the
@@ -173,22 +103,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
         if (preview) return;
         const measure = () => {
             const el = document.getElementById('profileTabsRow');
-            if (!el) return;
-            const w = el.getBoundingClientRect().width || null;
-            if (!w) { setClampW(null); return; }
-            /* Mobile landscape (Brendon, 2026-09-15 — "stickers get wacky in
-               landscape"): #profileTabsRow has no width of its own, so it just
-               inherits the column's — which balloons to the full landscape
-               viewport (the ~600px breakpoint that keeps the column narrow in
-               portrait doesn't apply once the phone is on its side). A LOCKED
-               composition's x/y are saved percentages, so they stretched across
-               that much bigger box while each sticker's own pixel size stayed
-               fixed — same picture, huge gaps. Portrait width ≈ landscape
-               height on the same phone, so in that squat orientation cap to
-               the viewport's short side instead — same landscape breakpoint
-               already used for the sticker manager's own layout fix below. */
-            const isMobileLandscape = window.matchMedia('(orientation: landscape) and (max-height: 500px)').matches;
-            setClampW(isMobileLandscape ? Math.min(w, window.innerHeight) : w);
+            if (el) setClampW(el.getBoundingClientRect().width || null);
         };
         measure();
         const el = document.getElementById('profileTabsRow');
@@ -208,30 +123,8 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
     // The preview (Manager Plus) is fed the owner's saved composition up front so
     // it paints LOCKED from the first frame — no generative-fallback flash, no
     // height jump that shoves the panel content down (Brendon 2026-06-24).
-    /* editingLive swaps the composition's SOURCE from the account-synced
-       snapshot to local storage (usePlacements/ownPlace) — the whole point
-       being an instant-paint surface for drags while actively editing. But
-       the very tap that flips editingLive true (setMgrOpen(true) below) can
-       land before local storage has ever mirrored this device's saved
-       composition — a device that has never dragged a sticker locally has an
-       EMPTY ownPlace.placements even though the account has a locked layout.
-       That's the "hides, then shows" flash Brendon hit (2026-09-15): the
-       pile drops to zero items on the swap, then reappears once something
-       else (e.g. the manager's own seeding) populates local storage. Falling
-       back to the saved snapshot whenever local storage is still empty keeps
-       the pile showing the same picture straight through the transition —
-       local storage still wins the instant it actually has anything (a real
-       drag in progress). */
-    const layoutMap = preview
-        ? (savedLayout ?? {})
-        : (editingLive
-            ? (Object.keys(ownPlace.placements).length > 0 ? ownPlace.placements : (savedLayout ?? {}))
-            : (savedLayout ?? {}));
-    const aspect = preview
-        ? (savedAspect ?? null)
-        : (editingLive
-            ? (Object.keys(ownPlace.placements).length > 0 ? ownPlace.aspect : (savedAspect ?? null))
-            : (savedAspect ?? null));
+    const layoutMap = preview ? (savedLayout ?? {}) : (isOwn ? ownPlace.placements : (savedLayout ?? {}));
+    const aspect = preview ? (savedAspect ?? null) : (isOwn ? ownPlace.aspect : (savedAspect ?? null));
     const locked = Object.keys(layoutMap).length > 0;
 
     /* Locked composition, resolved + layered (z asc, last-touched on top). */
@@ -246,8 +139,8 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
     }, [layoutMap]);
 
     const active = useMemo(
-        () => owned.filter((s) => isActive(s, offSheets, offIds, peeledSheets)),
-        [owned, offSheets, offIds, peeledSheets],
+        () => owned.filter((s) => isActive(s, offSheets, offIds)),
+        [owned, offSheets, offIds],
     );
 
     const { rows, cap } = arrangeShape(arrange, rowsPref);
@@ -426,15 +319,11 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
         />
     ) : null;
 
-    /* The hide toggle is per-viewer's own session (notifs.sticker) — only
-       meaningful for the OWNER'S OWN view. A visitor's hide check is the
-       owner's public flag, not whatever the visitor happens to have set on
-       their own account (that used to hide every profile a hider visited,
-       not just their own). */
-    if (isOwn ? notifs.sticker : ownerHidden) return <StickerBoundary label="manager">{manager}</StickerBoundary>;
-    if (locked ? lockedItems.length === 0 : active.length === 0) return <StickerBoundary label="manager">{manager}</StickerBoundary>;
+    if (notifs.sticker) return manager;
+    if (locked ? lockedItems.length === 0 : active.length === 0) return manager;
 
     const baseTilt = tiltDeg(tilt);
+    const jrnd = rngFrom(seed + 7);
     /* Per-sticker render height. Output artworks render at half (they read big),
        and ARTISTS + PRICESPRITES badges 20% down — the artist-badge size is the
        LARGE reference; PriceSprites match it, Projects stay XL (Brendon,
@@ -531,30 +420,15 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
                     >
                         {body}
                     </div>
-                    {/* Own boundary — separate from the pile's, so a crash opening the
-                        manager can't take the already-visible pile down with it. */}
-                    <StickerBoundary label="manager">{manager}</StickerBoundary>
+                    {manager}
                 </>
             ) : (
                 <div
-                    className="hero-stickers-canvas hero-stickers-tap"
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`See ${ownerHandle ? `@${ownerHandle}'s` : "this"} stickers`}
+                    className="hero-stickers-canvas"
                     style={{ maxWidth: expand ? undefined : (clampW ?? undefined), ...(aspect ? { aspectRatio: String(aspect) } : { minHeight: 96 }) }}
-                    onClick={() => setSpreadOpen(true)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSpreadOpen(true); } }}
                 >
                     {body}
                 </div>
-            )}
-            {!isOwn && (
-                <StickerSpreadModal
-                    open={spreadOpen}
-                    onClose={() => setSpreadOpen(false)}
-                    ownerHandle={ownerHandle}
-                    stickers={locked ? lockedItems.map((li) => li.st) : picked}
-                />
             )}
         </div>
     );
@@ -680,50 +554,58 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
         );
     }
 
-    // FLOW — replaces Row + Scatter + Fill. Same collision-safe relax() as
-    // Collage/Stack/Slapped, just seeded along a line instead of a cluster —
-    // a line's energy, but physically incapable of leaving the box or
-    // overlapping (Brendon, 2026-08-30).
-    if (arrange === 'flow') {
-        const comp = buildFlow(picked.length, seed, picked.map(wf), rowsPref, tilt);
-        return wrap(
-            <div className="hero-flow" style={{ ...areaStyle, aspectRatio: String(comp.aspect) }}>
-                {picked.map((s, i) => {
-                    const p = comp.items[i]!;
-                    return (
-                        <span
-                            key={s.id}
-                            data-sid={s.id}
-                            className="hero-sticker hero-flow-item"
-                            style={{ left: `${p.x}%`, top: `${p.y}%`, zIndex: p.z, transform: `translate(-50%, -50%) rotate(${p.rot + flipOf(s.id)}deg) scale(${p.scale})` }}
-                            title={s.name}
-                            {...ownDown(s)}
-                        >
-                            <StickerArt sticker={s} size={sz(s)} diecut={diecut} />
-                        </span>
-                    );
-                })}
-            </div>,
-        );
-    }
-
-    // SPACED — the only remaining flex-row mode. Tidy, even edge-to-edge,
-    // dead level, uniform size, a whisper of alternating tilt.
+    // Flex rows (spread / row / scatter / fill).
     const perRow = Math.ceil(picked.length / rows);
     const rowChunks = Array.from({ length: rows }, (_, r) => picked.slice(r * perRow, (r + 1) * perRow));
 
+    /* The flex modes, ONE idea each — they read too alike (Brendon, 2026-08-03:
+       three modes looked exactly the same):
+         SPACED  — the tidy one. Even edge-to-edge, dead level, uniform size,
+                   whisper of alternating tilt. The only mode a ruler approves.
+         ROW     — the same line placed by a HAND: snug, every sticker a touch
+                   off the baseline with its own small lean, no two gaps alike.
+         SCATTER — the airy toss: big vertical drift, free rotation, properly
+                   mixed sizes, uneven spacing — floating, none touching.
+         FILL    — the stamp strip: dense, dead level, near-uniform and a size
+                   down, papering the band wall-to-wall.
+       All seeded (Shuffle re-rolls, a reload repeats), every sticker fully
+       readable, nothing off the box at portrait-iPhone width. */
     return wrap(
         <div className={`hero-stickers-rows arr-${arrange} ${alignClass}`} style={areaStyle}>
             {rowChunks.map((chunk, ri) => (
                 <div className="hero-stickers-row" key={ri}>
                     {chunk.map((s, i) => {
-                        const rot = baseTilt === 0 ? 0 : ((i + ri) % 2 === 0 ? -baseTilt : baseTilt);
+                        const v1 = jrnd(), v2 = jrnd(), v3 = jrnd();
+                        let rot = baseTilt === 0 ? 0 : ((i + ri) % 2 === 0 ? -baseTilt : baseTilt);
+                        let jy = 0;
+                        let sc = 1;
+                        let gap = 0;
+                        if (arrange === 'row') {
+                            jy = Math.round((v1 - 0.5) * 9);
+                            rot = (baseTilt === 0 ? 3 : baseTilt * 1.1) * (v2 * 2 - 1);
+                            sc = 0.97 + v3 * 0.06;
+                            gap = Math.round((jrnd() - 0.5) * 8);
+                        } else if (arrange === 'scatter') {
+                            rot = (v1 * 2 - 1) * (baseTilt === 0 ? 8 : baseTilt * 2.4);
+                            jy = Math.round((v2 - 0.5) * 30);
+                            sc = 0.8 + v3 * 0.38;
+                            gap = Math.round((jrnd() - 0.5) * 14);
+                        } else if (arrange === 'fill') {
+                            rot = (v1 * 2 - 1) * baseTilt * 0.4;
+                            sc = 0.88 + v3 * 0.07;
+                        }
                         return (
                             <span
                                 key={s.id}
                                 data-sid={s.id}
                                 className="hero-sticker"
-                                style={{ transform: `rotate(${rot + flipOf(s.id)}deg)` }}
+                                style={{
+                                    /* Uneven gaps — additive only (before or after,
+                                       never negative space), so nothing overlaps. */
+                                    marginLeft: gap > 0 ? gap : undefined,
+                                    marginRight: gap < 0 ? -gap : undefined,
+                                    transform: `translateY(${jy}px) rotate(${rot + flipOf(s.id)}deg)${sc !== 1 ? ` scale(${sc.toFixed(3)})` : ''}`,
+                                }}
                                 title={s.name}
                                 {...ownDown(s)}
                             >

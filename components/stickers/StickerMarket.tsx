@@ -134,7 +134,7 @@ function QtyStep({ qty, max, setQty }: { qty: number; max: number; setQty: (n: n
     );
 }
 
-export default function StickerMarket({ compact, initialSheet }: { compact?: boolean; initialSheet?: SheetId | null }) {
+export default function StickerMarket() {
     const { showToast } = useToast();
     const { siweAddress } = useAuth();
     useClaimSync(!!siweAddress);
@@ -142,10 +142,7 @@ export default function StickerMarket({ compact, initialSheet }: { compact?: boo
     const [summary, setSummary] = useState<Record<string, SheetSummary> | null>(null);
     const [myHoldings, setMyHoldings] = useState<Record<string, number>>({});
     const [myWants, setMyWants] = useState<Set<string>>(new Set());
-    /* Deep-linked straight into a sheet's book — e.g. from the sticker pile
-       stats popover's SECONDARY pill (Brendon, 2026-09-15). */
-    const [openSheet, setOpenSheet] = useState<SheetId | null>(initialSheet ?? null);
-    useEffect(() => { if (initialSheet) setOpenSheet(initialSheet); }, [initialSheet]);
+    const [openSheet, setOpenSheet] = useState<SheetId | null>(null);
     const [book, setBook] = useState<Book | null>(null);
     const [busy, setBusy] = useState(false);
 
@@ -220,51 +217,6 @@ export default function StickerMarket({ compact, initialSheet }: { compact?: boo
 
     /* ── SUMMARY ─────────────────────────────────────────────────────────── */
     if (!openSheet) {
-        /* Compact — a swipeable rail of mini price cards (Brendon, 2026-08-30).
-           Same data as the row below, condensed; tap opens the same BOOK. */
-        if (compact) {
-            return (
-                <>
-                <div className="ss-rail mkt-rail">
-                    {SHEETS.map((s) => {
-                        const sum = summary?.[s.id];
-                        return (
-                            <div
-                                className="mkt-card"
-                                key={s.id}
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => setOpenSheet(s.id)}
-                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpenSheet(s.id); } }}
-                            >
-                                <div className="mkt-card-fan" aria-hidden="true">
-                                    <span className="ss-fan">
-                                        {fanFor(s).map((st, i) => (
-                                            <span key={st.id} className="ss-fan-item" style={{ transform: `rotate(${[-9, 0, 9][i] ?? 0}deg)` }}>
-                                                <StickerArt sticker={st} size={30} />
-                                            </span>
-                                        ))}
-                                    </span>
-                                    {myWants.has(s.id) && <span className="mkt-card-wanted" title="Wanted">{`✛${VS15}`}</span>}
-                                </div>
-                                <div className="mkt-card-name">{s.name}</div>
-                                <div className="mkt-card-stats">
-                                    {sum?.listed ? `${sum.listed} listed` : 'none listed'}
-                                    {sum?.sales ? ` · ${sum.sales} sold` : ''}
-                                </div>
-                                <div className="mkt-card-floor pill pill-l2">{sum?.floor != null ? formatEth(sum.floor) : '—'}</div>
-                                <div className="mkt-card-best">{sum?.best_offer != null ? `✶${VS15}${formatEth(sum.best_offer)}` : `✶${VS15}—`}</div>
-                            </div>
-                        );
-                    })}
-                </div>
-                <div className="ss-foot">
-                    {SHEETS.length} sheets · tap a sheet for its book · settles in sim ETH ·{' '}
-                    <a className="ss-foot-link" href="https://opensea.io" target="_blank" rel="noopener noreferrer">OpenSea</a>
-                </div>
-                </>
-            );
-        }
         return (
             <>
             <div className="skm-wrap">
