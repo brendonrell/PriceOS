@@ -38,6 +38,9 @@
  * soundtrack button; tapping it starts the project's soundtrack and the circle
  * becomes the miniplayer's spinning DISC (FmBar, body.pd-ps-open → face forced
  * to disc, docked in this slot; tap the disc = pause/resume). A toast says so.
+ * SWIPE to a new artwork and the miniplayer closes, handing back a fresh ♫
+ * circle for that piece (Brendon, 2026-09-19: "swipe to a new artwork to get
+ * a fresh circle").
  *
  * Layout: edge-to-edge, actual TikTok style — no frame border, no padding,
  * no rounded corners (Brendon, 2026-09-14: the colorway-border frame
@@ -77,7 +80,7 @@ import { ART_IMAGE_BASE, artImageUrl, artThumbUrl, getProject, projectColorway }
 import { isStarred, toggleStar, subscribeStarred } from '../../lib/pins/starStore';
 import { useUserIdentity } from '../../lib/hooks/useUserRank';
 import { shareLink } from '../../lib/pwa/share';
-import { fmPlay, getFm, subscribeFm } from '../../lib/fm/fmBus';
+import { fmPlay, fmClose, getFm, subscribeFm } from '../../lib/fm/fmBus';
 import AsciiId from '../hero/AsciiId';
 import FollowButton from '../profile/FollowButton';
 import type { PriceStreamCard } from '../../app/api/pricestream/feed/route';
@@ -433,6 +436,20 @@ export default function PriceStreamFeed() {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen]);
+    // A swipe to a different artwork resets the slot: close the miniplayer so
+    // the disc turns back into a fresh ♫ circle for the new piece.
+    const prevCardKey = useRef<string | null>(null);
+    useEffect(() => {
+        if (!isOpen) { prevCardKey.current = null; return; }
+        const key = activeCard ? `${activeCard.slug}:${activeCard.tokenId}` : null;
+        const prev = prevCardKey.current;
+        prevCardKey.current = key;
+        if (prev && key && prev !== key && getFm().station) {
+            fmClose();
+            showToast('miniplayer: CLOSED \u00b7 tap the note to play this one', 3200);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen, activeCard?.slug, activeCard?.tokenId]);
     useEffect(() => {
         if (isOpen) document.body.style.setProperty('--ps-dock-accent', accentColor);
     }, [isOpen, accentColor]);
