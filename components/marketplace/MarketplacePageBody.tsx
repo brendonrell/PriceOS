@@ -50,6 +50,10 @@ import { useAuth } from '../../lib/state/AuthContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { getProject, projectTraits, projectColorway } from '../../lib/project/registry';
 import { formatEth } from '../../lib/format/eth';
+import MarketplaceTitlePulse from './MarketplaceTitlePulse';
+import { applyMarketPulseSample } from '../../lib/state/ColorwayContext';
+import { enableMarketPulse, disableMarketPulse } from '../../lib/engines/marketPulseEngine';
+import { isMarketPulseEnabled, subscribeMarketPulse } from '../../lib/marketplace/marketPulseStore';
 import type {
     MarketplaceResponse,
     MarketplaceListing,
@@ -293,6 +297,28 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
         };
     }, []);
 
+    // Market Pulse Colorway — marketplace-only bg pulse toggled by the
+    // title's single tap (MarketplaceTitlePulse). Local state mirrors the
+    // persisted store so a cross-device hydration flips it live too.
+    const [pulseOn, setPulseOn] = useState(false);
+    useEffect(() => {
+        setPulseOn(isMarketPulseEnabled());
+        return subscribeMarketPulse(() => setPulseOn(isMarketPulseEnabled()));
+    }, []);
+    useEffect(() => {
+        if (!pulseOn) return;
+        // Activity = recent market event volume (last 5 min), capped — a
+        // livelier market gets a livelier (still subtle) pulse.
+        const recentCount = (feed?.events ?? []).filter((e) => Date.now() - e.ts < 5 * 60_000).length;
+        const activity = Math.min(recentCount / 6, 1);
+        // Base = whatever the active colorway currently painted, captured
+        // fresh on every (re)run — so a colorway change or the 30s feed
+        // refresh both re-anchor the pulse instead of drifting off it.
+        const baseHex = getComputedStyle(document.documentElement).getPropertyValue('--bg-color').trim() || '#111111';
+        enableMarketPulse(activity, baseHex, applyMarketPulseSample);
+        return () => disableMarketPulse(baseHex, applyMarketPulseSample);
+    }, [pulseOn, feed]);
+
     const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
 
     const [activeTab, setActiveTab] = useState<MarketTab>('artworks');
@@ -471,7 +497,7 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
         <>
             <Hero
                 ariaLabel="PD Marketplace"
-                titleRow={<h1 className="project-title">PD Marketplace</h1>}
+                titleRow={<MarketplaceTitlePulse />}
                 identityRow={
                     /* The home hero's credit line, verbatim. */
                     <div className="hero-line project-custom home-id-row">
