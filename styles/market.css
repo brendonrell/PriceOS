@@ -902,7 +902,8 @@ a.notif-item--link:hover { opacity: 0.85; }
    it 1px. */
 .stat-icon-mk {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
+    /* ✹ Listed: 14 → 16 (Brendon, 2026-09-18 — two sizes up). ✶ keeps its own 18. */
+    font-size: 16px;
 }
 .stat-icon-mk--offer {
     font-size: 18px;
@@ -918,3 +919,22 @@ a.notif-item--link:hover { opacity: 0.85; }
     font-weight: 700;
     line-height: 1.4;
 }
+
+/* ── PAL sheet polish (Brendon, 2026-09-18) ─────────────────────────────── */
+/* Purchase + Profit are the same height — the sheet no longer resizes when
+   you flip sides (the body scrolls inside it). */
+.cart-panel-box.pal-box { height: 75vh; }
+/* The sheet title: Rubik, one size up (14 → 15). The section titles inside
+   the content wear the same face + size, with real air around them. */
+.pal-box .cart-panel-title { font-size: 15px; }
+.pal-sec {
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 15px;
+    font-weight: normal;
+    letter-spacing: 1.5px;
+    margin: 20px 0 10px;
+}
+.pal-box .cpl-foot { margin-top: 14px; }
+/* The hot read as squares — a name can wrap; the sub-line is 12px, full strength. */
+.cpl-tile-text { overflow-wrap: anywhere; line-height: 1.2; }
+.cpl-tile-sub { font-size: 12px; font-weight: bold; line-height: 1.25; }
