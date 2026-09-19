@@ -68,22 +68,27 @@ const MAX_HERO_OUTPUTS = 4;
 
 /* Boundary so a single bad sticker can never take down the whole profile — the
    feature just renders nothing instead of crashing the page. */
-class StickerBoundary extends Component<{ children: ReactNode; label?: string }, { failed: boolean }> {
+class StickerBoundary extends Component<{ children: ReactNode; label?: string }, { failed: boolean; msg?: string }> {
     constructor(props: { children: ReactNode; label?: string }) { super(props); this.state = { failed: false }; }
-    static getDerivedStateFromError() { return { failed: true }; }
+    static getDerivedStateFromError(error: unknown) { return { failed: true, msg: error instanceof Error ? error.message : String(error) }; }
     /* Was a silent swallow ("stickers are decorative") — which is exactly why
        the pile-hides-on-tap bug (Brendon, 2026-09-15) took this long to pin
        down: whatever throws during a re-render just vanishes with zero trace.
-       Logging it is the fix that finds the fix.
 
-       Now also TWO separate boundaries instead of one shared one: the manager
-       modal used to share the SAME boundary as the pile beneath it, so a crash
-       opening the manager took the already-rendered pile down with it — "tap
-       to open the manager" LOOKED like "tap to hide my stickers". Giving the
-       manager its own boundary means that failure domain stops at the modal;
-       the pile stays up either way. */
-    componentDidCatch(error: unknown) { console.error(`[HeroStickers${this.props.label ? `:${this.props.label}` : ''}] render crashed — fell back to hidden:`, error); }
-    render() { return this.state.failed ? null : this.props.children; }
+       Splitting the manager into its own boundary (previous pass) did NOT
+       stop the pile from hiding — which rules out the manager's own render
+       and points at the canvas/body render itself, shared code that isn't
+       gated by mgrOpen. Logging alone isn't enough on mobile (no console) —
+       surfacing the message ON SCREEN is, so it shows up wherever this broke. */
+    componentDidCatch(error: unknown) { console.error(`[HeroStickers${this.props.label ? `:${this.props.label}` : ''}] render crashed:`, error); }
+    render() {
+        if (!this.state.failed) return this.props.children;
+        return (
+            <div style={{ fontSize: 11, opacity: 0.7, padding: '6px 2px' }}>
+                Stickers hit a snag{this.props.label ? ` (${this.props.label})` : ''}{this.state.msg ? `: ${this.state.msg}` : ''}.
+            </div>
+        );
+    }
 }
 
 export function HeroStickers(props: Props) {
