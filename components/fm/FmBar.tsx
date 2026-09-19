@@ -207,7 +207,21 @@ export default function FmBar() {
     const [display, setDisplay] = useState<FmDisplay>('deck');
     /* Tapping the album art leaves the app for YouTube on the DECK face only;
        on TAB and DISC it opens the station picker instead (Brendon, 2026-07-26). */
-    const artOpensYouTube = display === 'deck';
+    /* PRICESTREAM DOCK (Brendon, 2026-09-19): inside the PriceStream feed the
+       miniplayer is ALWAYS the round DISC, docked in the action rail where the
+       soundtrack note was (PriceStreamFeed flags body.pd-ps-open + fires
+       'pd:ps-open-changed'). The saved face is untouched — leave the feed and
+       the player returns to whatever face the user picked. */
+    const [inStream, setInStream] = useState(false);
+    useEffect(() => {
+        const read = () => setInStream(document.body.classList.contains('pd-ps-open'));
+        read();
+        window.addEventListener('pd:ps-open-changed', read);
+        return () => window.removeEventListener('pd:ps-open-changed', read);
+    }, []);
+    useEffect(() => { if (inStream) setPickerOpen(false); }, [inStream]);
+    const face: FmDisplay = inStream ? 'disc' : display;
+    const artOpensYouTube = face === 'deck';
     useEffect(() => {
         const read = () => {
             try {
@@ -628,6 +642,20 @@ export default function FmBar() {
         if (playerRef.current) pressPlay(playerRef.current);
     };
 
+    /* In the PriceStream dock the disc IS the transport: tap = pause / resume,
+       and the toast says so (Brendon, 2026-09-19 — "a clear toast so users
+       understand what's going on"). */
+    const onStreamDiscTap = () => {
+        const wasPlaying = status === 'playing';
+        onPlayTap();
+        showToast(
+            wasPlaying
+                ? 'miniplayer: PAUSED \u00b7 tap the disc to resume'
+                : 'miniplayer: PLAYING \u00b7 tap the disc to pause',
+            3200,
+        );
+    };
+
     const onNextTap = () => playerRef.current?.nextVideo();
     /* ⟳ SHUFFLE — the USB pad's left key, the fourth of the cluster (Brendon,
        2026-07-28: "can we not add a 4th button too?" → "maybe shuffle
@@ -692,7 +720,7 @@ export default function FmBar() {
             });
         });
         return () => cancelAnimationFrame(raf);
-    }, [trackTitle, onAir, deadLink, status, display]);
+    }, [trackTitle, onAir, deadLink, status, face]);
 
     /* ── The station picker — the customization (tap the screen) ── */
     const pickStation = (st: Station) => {
@@ -809,7 +837,7 @@ export default function FmBar() {
     /* No session, no device — playing a soundtrack is the only door in. */
     if (rotation.length === 0 || !onAir) return null;
 
-    const isDeckFace = display === 'deck';
+    const isDeckFace = face === 'deck';
 
     /* The three LCD rows — Sony minidisc grammar: static, compact, no crawl.
        Row 1 = the SONG now playing AND the playlist it's from, joined with
@@ -830,7 +858,7 @@ export default function FmBar() {
         <>
         <div
             ref={barRef}
-            className={`fm-bar fm-mode-${display} fm-live${status === 'playing' ? ' fm-playing' : ''}`}
+            className={`fm-bar fm-mode-${face} fm-live${status === 'playing' ? ' fm-playing' : ''}${inStream ? ' fm-in-stream' : ''}`}
             title="miniplayer — the platform's soundtracks. Tap the screen to pick a station."
         >
             {pickerOpen && pickerView === 'tracks' && (
@@ -906,7 +934,7 @@ export default function FmBar() {
             {/* USB face only: the end cap over the plug — tap off / tap on.
                 Rendered after nothing that matters: the video host slot below
                 never moves. */}
-            {display === 'usb' && (
+            {face === 'usb' && (
                 <button
                     type="button"
                     className={`fm-usbcap${usbCapOff ? ' fm-usbcap--off' : ''}`}
@@ -932,7 +960,7 @@ export default function FmBar() {
                     ? <span className="fm-pause-glyph">‖</span>
                     : <span className="fm-play-glyph">▶︎</span>}
             </button>
-            {display === 'usb' && (
+            {face === 'usb' && (
                 <button
                     type="button"
                     className={`fm-btn fm-shuffle${shuffleOn ? ' on' : ''}`}
@@ -942,7 +970,7 @@ export default function FmBar() {
                     {'⟳︎'}
                 </button>
             )}
-            {(isDeckFace || display === 'usb') && (
+            {(isDeckFace || face === 'usb') && (
                 <button type="button" className="fm-btn" onClick={onNextTap} title="Next track">
                     ≫
                 </button>
@@ -968,8 +996,8 @@ export default function FmBar() {
             <button
                 type="button"
                 className="fm-screen"
-                onClick={() => (setPickerView('stations'), setPickerOpen((v) => !v))}
-                title="Pick a station"
+                onClick={() => (inStream ? onStreamDiscTap() : (setPickerView('stations'), setPickerOpen((v) => !v)))}
+                title={inStream ? 'Pause / resume' : 'Pick a station'}
             >
                 {/* The video host stays mounted for the session — YT replaces
                     it with the iframe; a remount kills the audio. The overlay
@@ -987,7 +1015,9 @@ export default function FmBar() {
                     aria-label={artOpensYouTube ? 'Open the full playlist on YouTube' : 'Pick a station'}
                     onClick={(e) => {
                         e.stopPropagation();
-                        if (artOpensYouTube) {
+                        if (inStream) {
+                            onStreamDiscTap();
+                        } else if (artOpensYouTube) {
                             window.open(stationWatchUrl(onAir.playlistId), '_blank', 'noopener,noreferrer');
                         } else {
                             (setPickerView('stations'), setPickerOpen((v) => !v));
@@ -997,7 +1027,9 @@ export default function FmBar() {
                         if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
                             e.stopPropagation();
-                            if (artOpensYouTube) {
+                            if (inStream) {
+                                onStreamDiscTap();
+                            } else if (artOpensYouTube) {
                                 window.open(stationWatchUrl(onAir.playlistId), '_blank', 'noopener,noreferrer');
                             } else {
                                 (setPickerView('stations'), setPickerOpen((v) => !v));
@@ -1013,7 +1045,7 @@ export default function FmBar() {
                     (Brendon, 2026-07-28). The DECK reads on the same glass
                     (Brendon, 2026-07-30) — same deck in every other respect,
                     only the readout style changes. TAB and DISC keep rows. */}
-                {display === 'usb' || isDeckFace ? (
+                {face === 'usb' || isDeckFace ? (
                     <FmLcd
                         bars={isDeckFace ? 10 : 5}
                         rows={[rowTrack, rowStation, rowStatus]}
